@@ -17,10 +17,13 @@ public class Lexer {
     public Lexer(String fileName) throws FileNotFoundException{
         try{
             file = new FileReader (fileName);
+            System.out.println(file.read());
         }
         catch(FileNotFoundException e){
             System.out.println("Arquivo não encontrado");
             throw e;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
         //Insere palavras reservadas na HashTable
         reserve(new Word ("program", Tag.PRG));
@@ -48,12 +51,12 @@ public class Lexer {
         }
         switch(ch){
             //Operadores
-            case '&':
-                if (readch('&')) return Word.and;
-                else return new Token('&');
-            case '|':
-                if (readch('|')) return Word.or;
-                else return new Token('|');
+//            case '&':
+//                if (readch('&')) return Word.and;
+//                else return new Token('&');
+//            case '|':
+//                if (readch('|')) return Word.or;
+//                else return new Token('|');
             case '=':
                 if (readch('=')) return Word.eq;
                 else return new Token('=');

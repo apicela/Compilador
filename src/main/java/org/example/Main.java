@@ -4,14 +4,20 @@ package org.example;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+        // Verifica se o nome do arquivo foi passado como argumento
+        if (args.length < 1) {
+            System.out.println("Por favor, forneça o nome do arquivo como argumento.");
+            return;
+        }
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+        // O nome do arquivo é o primeiro argumento passado
+        String caminhoArquivo = args[0];
+
+        try {
+          Lexer lexer = new Lexer(caminhoArquivo);
+
+        } catch (Exception e) {
+            System.err.println("Erro ao ler o arquivo: " + e.getMessage());
         }
     }
 }
