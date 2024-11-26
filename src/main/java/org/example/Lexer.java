@@ -67,14 +67,6 @@ public class Lexer {
         for (;; readch()) {
             if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\b') continue;
             else if (ch == '\n') line++; //conta linhas
-            else if (ch == ','){
-                System.out.println("COMMA REACHED");
-                break;
-            }
-            else if (ch == ';'){
-                System.out.println("; REACHED");
-                break;
-            }
             else break;
         }
         switch(ch){
@@ -114,6 +106,7 @@ public class Lexer {
             do{
                 sb.append(ch);
                 readch();
+                System.out.println("line 109. ch: " + (char) ch);
             }while(Character.isLetterOrDigit(ch));
             String s = sb.toString();
             Word w = (Word)words.get(s);
@@ -122,6 +115,7 @@ public class Lexer {
 //            System.out.println("new token WORD: " + w.getLexeme());
             words.put(s, w);
             if (w != null) {
+                System.out.println("line 118. ch: before limpar" + (char) ch);
                 ch = ' '; // Limpa o caractere atual explicitamente
                 return w;
             }
