@@ -6,8 +6,23 @@ import java.util.*;
 public class Lexer {
     public static int line = 1; //contador de linhas
     private char ch = ' '; //caractere lido do arquivo
+    private boolean finished = false;
     private FileReader file;
     private Hashtable words = new Hashtable();
+    int tokensCount = 0;
+
+
+    public void processTokens() throws IOException {
+        Token token;
+        while (!finished) {
+            token = scan();
+            tokensCount++;
+            // Aqui você pode processar o token se necessário
+            System.out.println("Token: " + token);
+        }
+
+    }
+
 
     /* Método para inserir palavras reservadas na HashTable */
     private void reserve(Word w){
@@ -17,13 +32,10 @@ public class Lexer {
     public Lexer(String fileName) throws FileNotFoundException{
         try{
             file = new FileReader (fileName);
-            System.out.println(file.read());
         }
         catch(FileNotFoundException e){
             System.out.println("Arquivo não encontrado");
             throw e;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
         //Insere palavras reservadas na HashTable
         reserve(new Word ("program", Tag.PRG));
@@ -32,7 +44,14 @@ public class Lexer {
         reserve(new Word ("type", Tag.TYPE));
     }
     private void readch() throws IOException{
-        ch = (char) file.read();
+        int nextChar = file.read();
+        if (nextChar == -1) {
+            System.out.println("Tokens encontrados: " + tokensCount);
+            file.close(); // Fecha o arquivo após a leitura completa
+            System.exit(0);
+        } else {
+            ch = (char) nextChar;
+        }
     }
     /* Lê o próximo caractere do arquivo e verifica se é igual a c*/
     private boolean readch(char c) throws IOException{
@@ -74,6 +93,8 @@ public class Lexer {
                 value = 10*value + Character.digit(ch,10);
                 readch();
             }while(Character.isDigit(ch));
+//            System.out.println("new token NUM: " +value);
+
             return new Num(value);
         }
         //Identificadores
@@ -87,8 +108,12 @@ public class Lexer {
             Word w = (Word)words.get(s);
             if (w != null) return w; //palavra já existe na HashTable
             w = new Word (s, Tag.ID);
+//            System.out.println("new token WORD: " + w.getLexeme());
             words.put(s, w);
-            return w;
+            if (w != null) {
+                ch = ' '; // Limpa o caractere atual explicitamente
+                return w;
+            }
         }
 
         //Caracteres não especificados

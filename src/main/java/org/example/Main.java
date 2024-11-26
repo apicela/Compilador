@@ -15,6 +15,7 @@ public class Main {
 
         try {
           Lexer lexer = new Lexer(caminhoArquivo);
+          lexer.processTokens();
 
         } catch (Exception e) {
             System.err.println("Erro ao ler o arquivo: " + e.getMessage());
