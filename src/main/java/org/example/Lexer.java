@@ -45,6 +45,7 @@ public class Lexer {
     }
     private void readch() throws IOException{
         int nextChar = file.read();
+        System.out.println("ch: " + (char) (nextChar) + " ASCII:" + nextChar);
         if (nextChar == -1) {
             System.out.println("Tokens encontrados: " + tokensCount);
             file.close(); // Fecha o arquivo após a leitura completa
@@ -66,6 +67,14 @@ public class Lexer {
         for (;; readch()) {
             if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\b') continue;
             else if (ch == '\n') line++; //conta linhas
+            else if (ch == ','){
+                System.out.println("COMMA REACHED");
+                break;
+            }
+            else if (ch == ';'){
+                System.out.println("; REACHED");
+                break;
+            }
             else break;
         }
         switch(ch){
@@ -76,6 +85,8 @@ public class Lexer {
 //            case '|':
 //                if (readch('|')) return Word.or;
 //                else return new Token('|');
+            case ',':
+                 return new Token(',');
             case '=':
                 if (readch('=')) return Word.eq;
                 else return new Token('=');
