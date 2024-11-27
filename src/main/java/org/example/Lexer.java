@@ -42,15 +42,43 @@ public class Lexer {
             System.out.println("Arquivo não encontrado");
             throw e;
         }
-        //Insere palavras reservadas na HashTable
+        // PROGRAM
         reserve(new Token (TokenType.START, "start", null));
         reserve(new Token (TokenType.EXIT, "exit", null));
+        // TYPE
         reserve(new Token (TokenType.TYPE, "int", null));
         reserve(new Token (TokenType.TYPE, "float", null));
         reserve(new Token (TokenType.TYPE, "string", null));
-        reserve(new Token (TokenType.START, "start", null));
-        reserve(new Token (TokenType.START, "start", null));
-        reserve(new Token (TokenType.START, "start", null));
+        // PALAVRAS RESERVADAS
+        reserve(new Token(TokenType.KEYWORD, "if", null));
+        reserve(new Token(TokenType.KEYWORD, "else", null));
+        reserve(new Token(TokenType.KEYWORD, "then", null));
+        reserve(new Token(TokenType.KEYWORD, "end", null));
+        reserve(new Token(TokenType.KEYWORD, "do", null));
+        reserve(new Token(TokenType.KEYWORD, "while", null));
+        reserve(new Token(TokenType.KEYWORD, "scan", null));
+        reserve(new Token(TokenType.KEYWORD, "print", null));
+// Para os operadores relacionais (relop)
+        reserve(new Token(TokenType.RELOP, "==", null));  // Operador igual a
+        reserve(new Token(TokenType.RELOP, ">", null));   // Operador maior que
+        reserve(new Token(TokenType.RELOP, ">=", null));  // Operador maior ou igual a
+        reserve(new Token(TokenType.RELOP, "<", null));   // Operador menor que
+        reserve(new Token(TokenType.RELOP, "<=", null));  // Operador menor ou igual a
+        reserve(new Token(TokenType.RELOP, "!=", null));  // Operador diferente de
+
+// Para os operadores aditivos (addop)
+        reserve(new Token(TokenType.ADDOP, "+", null));   // Operador de soma
+        reserve(new Token(TokenType.ADDOP, "-", null));   // Operador de subtração
+        reserve(new Token(TokenType.ADDOP, "||", null));  // Operador lógico OR
+
+// Para os operadores multiplicativos (mulop)
+        reserve(new Token(TokenType.MULOP, "*", null));   // Operador de multiplicação
+        reserve(new Token(TokenType.MULOP, "/", null));   // Operador de divisão
+        reserve(new Token(TokenType.MULOP, "%", null));   // Operador módulo
+        reserve(new Token(TokenType.MULOP, "&&", null));  // Operador lógico AND
+        // EQUALS
+        reserve(new Token(TokenType.EQUALS, "==", null));  // Operador lógico AND
+
 
     }
     private void readch() throws IOException{
