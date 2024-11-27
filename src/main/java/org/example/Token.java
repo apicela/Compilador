@@ -1,11 +1,31 @@
 package org.example;
 
 public class Token {
-    public final int tag; //constante que representa o token
-    public Token (int t){
-        tag = t;
+    private final TokenType tokenType; //constante que representa o token
+    private String value;
+    private final String lexeme;
+    public Token (TokenType tokenType, String lexeme, String value) {
+        this.tokenType = tokenType;
+        this.lexeme = lexeme;
+        this.value = value;
     }
     public String toString(){
-        return "" + tag;
+        return "";
+    }
+
+    public TokenType getTokenType() {
+        return tokenType;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getLexeme() {
+        return lexeme;
     }
 }

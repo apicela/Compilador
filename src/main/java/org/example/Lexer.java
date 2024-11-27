@@ -1,6 +1,7 @@
 package org.example;
 import java.io.*;
 import java.util.*;
+import java.util.regex.Pattern;
 
 
 public class Lexer {
@@ -9,6 +10,12 @@ public class Lexer {
     private boolean finished = false;
     private FileReader file;
     private Hashtable<String, Token> words = new Hashtable();
+
+    private static final Pattern KEYWORDS = Pattern.compile("\\b(int|float|if|else|while|for|public|private)\\b");
+    private static final Pattern IDENTIFIER = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*");
+    private static final Pattern INTEGER = Pattern.compile("\\d+");  // Para inteiros
+    private static final Pattern FLOAT = Pattern.compile("\\d+\\.\\d+"); // Para números com ponto
+    private static final Pattern STRING = Pattern.compile("\"[^\"]*\"");
 
     // Criando uma lista para armazenar os tokens (deve ser definida em algum lugar no código)
     List<Token> list = new ArrayList<>();
@@ -23,8 +30,8 @@ public class Lexer {
 
 
     /* Método para inserir palavras reservadas na HashTable */
-    private void reserve(Word w){
-        words.put(w.getLexeme(), w); // lexema é a chave para entrada na
+    private void reserve(Token t){
+        words.put(t.getLexeme(), t); // lexema é a chave para entrada na
         //HashTable
     }
     public Lexer(String fileName) throws FileNotFoundException{
@@ -36,10 +43,15 @@ public class Lexer {
             throw e;
         }
         //Insere palavras reservadas na HashTable
-        reserve(new Word ("program", Tag.PRG));
-        reserve(new Word ("begin", Tag.BEG));
-        reserve(new Word ("end", Tag.END));
-        reserve(new Word ("type", Tag.TYPE));
+        reserve(new Token (TokenType.START, "start", null));
+        reserve(new Token (TokenType.EXIT, "exit", null));
+        reserve(new Token (TokenType.TYPE, "int", null));
+        reserve(new Token (TokenType.TYPE, "float", null));
+        reserve(new Token (TokenType.TYPE, "string", null));
+        reserve(new Token (TokenType.START, "start", null));
+        reserve(new Token (TokenType.START, "start", null));
+        reserve(new Token (TokenType.START, "start", null));
+
     }
     private void readch() throws IOException{
         int nextChar = file.read();
