@@ -9,31 +9,38 @@ public class Lexer {
     private char ch = ' '; //caractere lido do arquivo
     private boolean finished = false;
     private FileReader file;
-    private Hashtable<String, Token> words = new Hashtable();
-
+    private Hashtable<String, Token> symbolsTable = new Hashtable();
     private static final Pattern KEYWORDS = Pattern.compile("\\b(int|float|if|else|while|for|public|private)\\b");
     private static final Pattern IDENTIFIER = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*");
     private static final Pattern INTEGER = Pattern.compile("\\d+");  // Para inteiros
     private static final Pattern FLOAT = Pattern.compile("\\d+\\.\\d+"); // Para números com ponto
     private static final Pattern STRING = Pattern.compile("\"[^\"]*\"");
-
+    private List<String> errors = new ArrayList<>();
     // Criando uma lista para armazenar os tokens (deve ser definida em algum lugar no código)
     List<Token> list = new ArrayList<>();
 
     public void processTokens() throws IOException {
         while (!finished) {
-            list.add(scan());
-            // Aqui você pode processar o token se necessário
+            Token t = scan();
+            list.add(t);
+            switch (t.getTokenType()) {
+                case TokenType.UNEXPECTED :
+                    errors.add(t.toString());
+                    break;
+                case TokenType.IDENTIFIER :
+                    Token identifier = symbolsTable.get(t.getLexeme());
+                    if(identifier == null) symbolsTable.put(t.getLexeme(), t);
+                    break;
+            }
         }
 
     }
 
-
     /* Método para inserir palavras reservadas na HashTable */
     private void reserve(Token t){
-        words.put(t.getLexeme(), t); // lexema é a chave para entrada na
-        //HashTable
+        symbolsTable.put(t.getLexeme(), t); // lexema é a chave para entrada na
     }
+
     public Lexer(String fileName) throws FileNotFoundException{
         try{
             file = new FileReader (fileName);
@@ -42,6 +49,10 @@ public class Lexer {
             System.out.println("Arquivo não encontrado");
             throw e;
         }
+        reserveLanguageTokens();
+    }
+
+    private void reserveLanguageTokens() {
         // PROGRAM
         reserve(new Token (TokenType.START, "start", null));
         reserve(new Token (TokenType.EXIT, "exit", null));
@@ -78,27 +89,28 @@ public class Lexer {
         reserve(new Token(TokenType.MULOP, "&&", null));  // Operador lógico AND
         // EQUALS
         reserve(new Token(TokenType.EQUALS, "==", null));  // Operador lógico AND
-
-
     }
+
     private void readch() throws IOException{
         int nextChar = file.read();
 //        System.out.println("ch: " + (char) (nextChar) + " ASCII:" + nextChar);
         if (nextChar == -1) {
 
             System.out.println("TABELA DE SIMBOLOS: ");
-            for (Map.Entry<String, Token> entry : words.entrySet()) {
-                String chave = entry.getKey();
+            for (Map.Entry<String, Token> entry : symbolsTable.entrySet()) {
                 Token valor = entry.getValue();
-                System.out.println("Chave: " + chave + ", Valor: " + valor);
+                System.out.println(valor);
             }
 
             // Imprimindo todos os valores
             System.out.println("TOKENS: ");
+            System.out.println(" TYPE  | LEXEME  |      VALUE");
             for(Token t : list){
                 System.out.println(t.toString());
             }
             System.out.println("Tokens encontrados: " + list.size());
+
+            for(String error : errors) System.out.println(error);
             file.close(); // Fecha o arquivo após a leitura completa
             System.exit(0);
         } else {
@@ -112,7 +124,6 @@ public class Lexer {
         ch = ' ';
         return true;
     }
-
     public Token scan() throws IOException{
         //Desconsidera delimitadores na entrada
         for (;; readch()) {
@@ -122,57 +133,63 @@ public class Lexer {
         }
         switch(ch){
             //Operadores
-//            case '&':
-//                if (readch('&')) return Word.and;
-//                else return new Token('&');
-//            case '|':
-//                if (readch('|')) return Word.or;
-//                else return new Token('|');
+            case '&':
+                if (readch('&')) return symbolsTable.get("&&");
+                else return unexpectedToken("&");
+            case '|':
+                if (readch('|')) return symbolsTable.get("||");
+                else return unexpectedToken("|");
             case ',':
-                 return new Token(',');
+                 return symbolsTable.get(",");
             case '=':
-                if (readch('=')) return Word.eq;
-                else return new Token('=');
+                if (readch('=')) return symbolsTable.get("==");
+                else return symbolsTable.get("=");
             case '<':
-                if (readch('=')) return Word.le;
-                else return new Token('<');
+                if (readch('=')) return symbolsTable.get("<=");
+                else return symbolsTable.get("<");
             case '>':
-                if (readch('=')) return Word.ge;
-                else return new Token('>');
+                if (readch('=')) return symbolsTable.get(">=");
+                else return symbolsTable.get(">");
         }
-        //Números
+        //Números @TODO
         if (Character.isDigit(ch)){
-            int value=0;
+            StringBuilder sb = new StringBuilder();
             do{
-                value = 10*value + Character.digit(ch,10);
+                sb.append(Character.digit(ch,10));
                 readch();
             }while(Character.isDigit(ch));
-            return new Num(value);
+            return new Token(TokenType.CONSTANT, sb.toString(), null);
         }
         //Identificadores
         if (Character.isLetter(ch)){
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             do{
                 sb.append(ch);
                 readch();
             }while(Character.isLetterOrDigit(ch));
             String s = sb.toString();
-            Word w = (Word)words.get(s);
+            Token w = symbolsTable.get(s);
             if (w != null) return w; //palavra já existe na HashTable
-            w = new Word (s, Tag.ID);
-//            System.out.println("new token WORD: " + w.getLexeme());
-//            System.out.println("s: " + s + "\nw: " + w);
-            words.put(s, w);
-            if (w != null) {
-                list.add(new Token(ch));
-                ch = ' '; // Limpa o caractere atual explicitamente
-                return w;
+            w = new Token (TokenType.IDENTIFIER, s, null);
+            symbolsTable.put(s, w);
+            Token t = symbolsTable.get(Character.toString(ch));
+            if(t == null) {
+                Token unexpected = unexpectedToken(Character.toString(ch));
+                list.add(unexpected);
+                errors.add(unexpected.toString());
             }
+            ch = ' ';
+            return w;
         }
 
+
         //Caracteres não especificados
-        Token t = new Token(ch);
+        Token t = unexpectedToken(Character.toString(ch));
         ch = ' ';
         return t;
+    }
+
+    private Token unexpectedToken(String lexeme) {
+        return new Token(TokenType.UNEXPECTED, lexeme, "Line error: " + line);
     }
 }

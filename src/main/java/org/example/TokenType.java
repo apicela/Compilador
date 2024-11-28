@@ -1,6 +1,7 @@
 package org.example;
 
 public enum TokenType {
+    UNEXPECTED,
     TYPE, START, EXIT, KEYWORD,
     COMMA, SEMICOLON, EQUALS,
     OPEN_BRACKET, CLOSE_BRACKET,

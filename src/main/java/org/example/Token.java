@@ -9,9 +9,6 @@ public class Token {
         this.lexeme = lexeme;
         this.value = value;
     }
-    public String toString(){
-        return "";
-    }
 
     public TokenType getTokenType() {
         return tokenType;
@@ -27,5 +24,12 @@ public class Token {
 
     public String getLexeme() {
         return lexeme;
+    }
+
+    @Override
+    public String toString() {
+        return this.tokenType +
+                " | " + this.lexeme +
+                (this.value != null ? " | " + this.value : "");
     }
 }
