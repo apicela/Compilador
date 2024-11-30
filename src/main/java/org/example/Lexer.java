@@ -121,8 +121,12 @@ public class Lexer {
             do {
                 sb.append(Character.digit(ch, 10));
                 readch();
-            } while (Character.isDigit(ch));
-            return new Token(TokenType.CONSTANT, sb.toString(), null);
+            } while (ch != ';' && ch != '\n' && ch != ' ' && ch !=',');
+            boolean isFloat = FLOAT.matcher(sb.toString()).matches();
+            boolean isInteger = INTEGER.matcher(sb.toString()).matches();
+            if(isFloat) return new Token(TokenType.CONSTANT_FLOAT, sb.toString(), null);
+            else if(isInteger) return new Token(TokenType.CONSTANT_INTEGER, sb.toString(), null);
+            else return unexpectedToken(sb.toString());
         }
         //Identificadores
         if (Character.isLetter(ch) || ch == '_') {
