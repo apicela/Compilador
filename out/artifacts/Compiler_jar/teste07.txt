@@ -1,7 +1,8 @@
 // comment
-int x;
+int x_s;
 /*
-dsiadsa w wq ewq
-*/
-string _s
+coment coment01
+comentariu
+
+string _s = "dasojdsa";
 end;
