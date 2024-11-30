@@ -1,2 +1,2 @@
-int e_s, ew@kk
+int e_s
 dsdsa;
