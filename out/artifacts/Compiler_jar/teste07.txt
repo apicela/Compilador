@@ -1,6 +1,7 @@
-start
-int _pontuacao,
-pontuacaoMaxina_;
- disponibilidade_, _;
-START
+// comment
+int x;
+/*
+dsiadsa w wq ewq
+*/
+string _s
 end;

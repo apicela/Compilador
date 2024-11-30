@@ -38,15 +38,17 @@ public class Lexer {
     public void processTokens() throws IOException {
         while (!finished) {
             Token t = scan();
-            list.add(t);
-            switch (t.getTokenType()) {
-                case TokenType.UNEXPECTED:
-                    errors.add(t.toString());
-                    break;
-                case TokenType.IDENTIFIER:
-                    Token identifier = symbolsTable.get(t.getLexeme());
-                    if (identifier == null) symbolsTable.put(t.getLexeme(), t);
-                    break;
+            if(t != null){
+                list.add(t);
+                switch (t.getTokenType()) {
+                    case TokenType.UNEXPECTED:
+                        errors.add(t.toString());
+                        break;
+                    case TokenType.IDENTIFIER:
+                        Token identifier = symbolsTable.get(t.getLexeme());
+                        if (identifier == null) symbolsTable.put(t.getLexeme(), t);
+                        break;
+                }
             }
             if (ch != ' ') {
                 Token remainingCharacter = symbolsTable.getOrDefault(
@@ -88,6 +90,11 @@ public class Lexer {
         }
         switch (ch) {
             //Operadores
+            case '/':
+                readch();
+                if (ch == '/') return readAndIgnoreComment(false);
+                else if(ch == '*') return readAndIgnoreComment(true);
+                else return symbolsTable.get("/");
             case '&':
                 if (readch('&')) return symbolsTable.get("&&");
                 else return unexpectedToken("&");
@@ -140,6 +147,23 @@ public class Lexer {
         );
         ch = ' ';
         return remainingCharacter;
+    }
+
+    private Token readAndIgnoreComment(boolean multiline) throws IOException {
+        readch();
+        if(multiline){
+            while(true){
+                readch();
+                if(ch == '*'){
+                    if(readch('/')) break;
+                }
+            }
+        } else{
+            do{
+                readch();
+            }while (ch != '\n');
+        }
+        return null;
     }
 
     private Token unexpectedToken(String lexeme) {
