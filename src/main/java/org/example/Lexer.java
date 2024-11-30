@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-
 public class Lexer {
     private static final Pattern KEYWORDS = Pattern.compile("\\b(int|float|if|else|while|for|public|private)\\b");
     private static final Pattern IDENTIFIER = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*");
@@ -24,6 +23,7 @@ public class Lexer {
     private FileReader file;
     private Hashtable<String, Token> symbolsTable = new Hashtable();
     private List<String> errors = new ArrayList<>();
+    private boolean commentIsClosed = true;
 
     public Lexer(String fileName) throws FileNotFoundException {
         try {
@@ -64,6 +64,7 @@ public class Lexer {
     private void readch() throws IOException {
         int nextChar = file.read();
         if (nextChar == -1) {
+            if(!commentIsClosed) errors.add("ERRO: A seção de comentarios '/*' foi aberta, entretanto não houve fechamento '*/'");
             printResults();
             file.close(); // Fecha o arquivo após a leitura completa
             System.exit(0);
@@ -81,7 +82,6 @@ public class Lexer {
     }
 
     public Token scan() throws IOException {
-        if(line == 2) System.out.println("ch: " + ch);
         //Desconsidera delimitadores na entrada
         for (; ; readch()) {
             if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\b') continue;
@@ -90,6 +90,8 @@ public class Lexer {
         }
         switch (ch) {
             //Operadores
+            case '{':
+
             case '/':
                 readch();
                 if (ch == '/') return readAndIgnoreComment(false);
@@ -152,10 +154,14 @@ public class Lexer {
     private Token readAndIgnoreComment(boolean multiline) throws IOException {
         readch();
         if(multiline){
+            commentIsClosed = false;
             while(true){
                 readch();
                 if(ch == '*'){
-                    if(readch('/')) break;
+                    if(readch('/')) {
+                        commentIsClosed = true;
+                        break;
+                    }
                 }
             }
         } else{

@@ -9,7 +9,6 @@ public class Token {
         if (lexeme.equals(" ")) {
             System.out.println("vazio");
         }
-        System.out.println("TOKEN IDENTIFICADO: lexeme " + lexeme + " | " + tokenType);
         this.tokenType = tokenType;
         this.lexeme = lexeme;
         this.value = value;
