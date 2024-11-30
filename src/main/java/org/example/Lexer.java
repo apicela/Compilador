@@ -52,6 +52,7 @@ public class Lexer {
                 }
             }
             if (ch != ' ') {
+                System.out.println("!!!!!" + ch);
                 Token remainingCharacter = symbolsTable.getOrDefault(
                         Character.toString(ch),
                         unexpectedToken(Character.toString(ch))
@@ -84,14 +85,23 @@ public class Lexer {
     }
 
     public Token scan() throws IOException {
+
         //Desconsidera delimitadores na entrada
         for (; ; readch()) {
             if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\b') continue;
             else if (ch == '\n') line++; //conta linhas
             else break;
         }
+        System.out.println("!!!!!" + ch);
         switch (ch) {
             //Operadores
+            case '(':
+                ch=' ';
+                return symbolsTable.get("(");
+
+            case ')':
+                ch=' ';
+                return symbolsTable.get(")");
             case '{':
                 return readLiteral();
             case '/':
@@ -130,6 +140,7 @@ public class Lexer {
         }
         //Identificadores
         if (Character.isLetter(ch) || ch == '_') {
+
             StringBuilder sb = new StringBuilder();
             do {
                 sb.append(ch);
@@ -249,6 +260,10 @@ public class Lexer {
         reserve(new Token(TokenType.MULOP, "&&", null));  // Operador lógico AND
         // EQUALS
         reserve(new Token(TokenType.EQUALS, "=", null));  // Operador lógico AND
+
+        //ROUND BRACKETS
+        reserve(new Token(TokenType.OPEN_ROUND, "(", null));
+        reserve(new Token(TokenType.CLOSE_ROUND, ")", null));
     }
 
     private void printResults() {
