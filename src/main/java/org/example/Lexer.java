@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 public class Lexer {
     private static final Pattern KEYWORDS = Pattern.compile("\\b(int|float|if|else|while|for|public|private)\\b");
-    private static final Pattern IDENTIFIER = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*");
+    private static final Pattern IDENTIFIER = Pattern.compile("[a-zA-Z_][a-zA-Z0-9]*");
     private static final Pattern INTEGER = Pattern.compile("\\d+");  // Para inteiros
     private static final Pattern FLOAT = Pattern.compile("\\d+\\.\\d+"); // Para números com ponto
     private static final Pattern STRING = Pattern.compile("\"[^\"]*\"");
@@ -130,11 +130,11 @@ public class Lexer {
             do {
                 sb.append(ch);
                 readch();
-            } while (Character.isLetterOrDigit(ch));
-            if(ch == '_') {
-                Token unexpected = unexpectedToken(sb.append(ch).toString());
-                ch = ' ';
-                return unexpected;
+            } while (ch != ';' && ch != '\n' && ch != ' ' && ch !=',');
+            boolean idMatch = IDENTIFIER.matcher(sb.toString()).matches();
+            if(!idMatch) {
+               // readch();
+                return unexpectedToken(sb.toString());
             }
             String s = sb.toString();
             Token w = symbolsTable.get(s);
@@ -194,7 +194,7 @@ public class Lexer {
     }
 
     private Token unexpectedToken(String lexeme) {
-        if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\b' || ch == '\n') return null;
+        if (lexeme.equals(" ") || lexeme.equals("\t") ||lexeme.equals("\r") || lexeme.equals("\b") ||lexeme.equals( "\n")) return null;
         return new Token(TokenType.UNEXPECTED, lexeme, "Line error: " + line);
     }
 
@@ -253,17 +253,17 @@ public class Lexer {
         final int COL_WIDTH_2 = 15; // Largura para "LEXEME"
 
         // Cabeçalho da tabela
-        System.out.println("=====================");
-        System.out.println("TABELA DE SIMBOLOS: " + symbolsTable.size());
-        System.out.println("=====================");
-
-        System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", "TOKEN TYPE", "LEXEME");
-
-        for (Map.Entry<String, Token> entry : symbolsTable.entrySet()) {
-            Token valor = entry.getValue();
-            // Ajustar o método toString do Token para retornar os valores corretamente
-            System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", valor.getTokenType(), valor.getLexeme());
-        }
+//        System.out.println("=====================");
+//        System.out.println("TABELA DE SIMBOLOS: " + symbolsTable.size());
+//        System.out.println("=====================");
+//
+//        System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", "TOKEN TYPE", "LEXEME");
+//
+//        for (Map.Entry<String, Token> entry : symbolsTable.entrySet()) {
+//            Token valor = entry.getValue();
+//            // Ajustar o método toString do Token para retornar os valores corretamente
+//            System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", valor.getTokenType(), valor.getLexeme());
+//        }
 
         // Imprimindo a tabela de TOKENS (sem VALUE)
         System.out.println("=====================");
