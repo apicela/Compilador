@@ -51,14 +51,6 @@ public class Lexer {
                         break;
                 }
             }
-            if (ch != ' ') {
-                Token remainingCharacter = symbolsTable.getOrDefault(
-                        Character.toString(ch),
-                        unexpectedToken(Character.toString(ch))
-                );
-                if (remainingCharacter != null) list.add(remainingCharacter);
-                ch = ' ';
-            }
         }
     }
 
@@ -92,6 +84,14 @@ public class Lexer {
         }
         switch (ch) {
             //Operadores
+            case '(': // b
+                readch();
+                //  ch=' ';
+                return symbolsTable.get("(");
+            case ')':
+                readch();
+               // ch=' ';
+                return symbolsTable.get(")");
             case '{':
                 return readLiteral();
             case '/':
@@ -119,9 +119,10 @@ public class Lexer {
         if (Character.isDigit(ch)) {
             StringBuilder sb = new StringBuilder();
             do {
-                sb.append(Character.digit(ch, 10));
+                sb.append(ch);
                 readch();
-            } while (ch != ';' && ch != '\n' && ch != ' ' && ch !=',');
+            } while (ch != ';' && ch != '\n' && ch != ' ' && ch !=',' && ch != '(' && ch != ')');
+            System.out.println("BEFORE WHILE: " + sb);
             boolean isFloat = FLOAT.matcher(sb.toString()).matches();
             boolean isInteger = INTEGER.matcher(sb.toString()).matches();
             if(isFloat) return new Token(TokenType.CONSTANT_FLOAT, sb.toString(), null);
@@ -134,7 +135,7 @@ public class Lexer {
             do {
                 sb.append(ch);
                 readch();
-            } while (ch != ';' && ch != '\n' && ch != ' ' && ch !=',');
+            } while (ch != ';' && ch != '\n' && ch != ' ' && ch !=',' && ch != '(' && ch != ')');
             boolean idMatch = IDENTIFIER.matcher(sb.toString()).matches();
             if(!idMatch) {
                // readch();
@@ -249,6 +250,10 @@ public class Lexer {
         reserve(new Token(TokenType.MULOP, "&&", null));  // Operador lógico AND
         // EQUALS
         reserve(new Token(TokenType.EQUALS, "=", null));  // Operador lógico AND
+
+        //ROUND BRACKETS
+        reserve(new Token(TokenType.OPEN_ROUND, "(", null));
+        reserve(new Token(TokenType.CLOSE_ROUND, ")", null));
     }
 
     private void printResults() {
