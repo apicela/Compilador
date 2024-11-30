@@ -2,9 +2,13 @@ package org.example;
 
 public class Token {
     private final TokenType tokenType; //constante que representa o token
-    private String value;
     private final String lexeme;
-    public Token (TokenType tokenType, String lexeme, String value) {
+    private String value;
+
+    public Token(TokenType tokenType, String lexeme, String value) {
+        if (lexeme.equals(" ")) {
+            System.out.println("vazio");
+        }
         this.tokenType = tokenType;
         this.lexeme = lexeme;
         this.value = value;
@@ -29,7 +33,8 @@ public class Token {
     @Override
     public String toString() {
         return this.tokenType +
-                " | " + this.lexeme +
-                (this.value != null ? " | " + this.value : "");
+                " | " + this.lexeme
+                  + (this.tokenType == TokenType.UNEXPECTED ? " | " + this.value : "")
+                ;
     }
 }

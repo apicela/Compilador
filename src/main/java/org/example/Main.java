@@ -9,13 +9,12 @@ public class Main {
             System.out.println("Por favor, forneça o nome do arquivo como argumento.");
             return;
         }
-
         // O nome do arquivo é o primeiro argumento passado
         String caminhoArquivo = args[0];
 
         try {
-          Lexer lexer = new Lexer(caminhoArquivo);
-          lexer.processTokens();
+            Lexer lexer = new Lexer(caminhoArquivo);
+            lexer.processTokens();
 
         } catch (Exception e) {
             System.err.println("Erro ao ler o arquivo: " + e.getMessage());
