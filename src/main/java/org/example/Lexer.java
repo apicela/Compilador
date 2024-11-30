@@ -24,6 +24,7 @@ public class Lexer {
     private Hashtable<String, Token> symbolsTable = new Hashtable();
     private List<String> errors = new ArrayList<>();
     private boolean commentIsClosed = true;
+    private boolean stringIsClosed = true;
 
     public Lexer(String fileName) throws FileNotFoundException {
         try {
@@ -65,6 +66,7 @@ public class Lexer {
         int nextChar = file.read();
         if (nextChar == -1) {
             if(!commentIsClosed) errors.add("ERRO: A seção de comentarios '/*' foi aberta, entretanto não houve fechamento '*/'");
+            if(!stringIsClosed) errors.add("ERRO: A seção de string '{' foi aberta, entretanto não houve fechamento '}'");
             printResults();
             file.close(); // Fecha o arquivo após a leitura completa
             System.exit(0);
@@ -91,7 +93,7 @@ public class Lexer {
         switch (ch) {
             //Operadores
             case '{':
-
+                return readLiteral();
             case '/':
                 readch();
                 if (ch == '/') return readAndIgnoreComment(false);
@@ -149,6 +151,27 @@ public class Lexer {
         );
         ch = ' ';
         return remainingCharacter;
+    }
+
+    private Token readLiteral() throws IOException {
+        stringIsClosed = false;
+        readch();
+        System.out.println("READ LITERAL CALLED");
+        StringBuilder sb = new StringBuilder();
+        do {
+            if(ch == '}') {
+                readch();
+                stringIsClosed =  true;
+                return new Token(TokenType.LITERAL, sb.toString(), null);
+            }
+            sb.append(ch);
+            readch();
+        } while (ch != '\n');
+        System.out.println("UNEXPECTED");
+        stringIsClosed = true;
+        Token errorToken = new Token(TokenType.ERROR, "Não houve fechamento de string.", "Line error: " + line);
+        errors.add(errorToken.getLexeme() + " " + errorToken.getValue());
+        return  errorToken;
     }
 
     private Token readAndIgnoreComment(boolean multiline) throws IOException {
@@ -223,7 +246,7 @@ public class Lexer {
         reserve(new Token(TokenType.MULOP, "%", null));   // Operador módulo
         reserve(new Token(TokenType.MULOP, "&&", null));  // Operador lógico AND
         // EQUALS
-        reserve(new Token(TokenType.EQUALS, "==", null));  // Operador lógico AND
+        reserve(new Token(TokenType.EQUALS, "=", null));  // Operador lógico AND
     }
 
     private void printResults() {

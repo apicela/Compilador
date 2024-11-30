@@ -1,8 +1,4 @@
-// comment
-int x_s;
-/*
-coment coment01
-comentariu
-
-string _s = "dasojdsa";
-end;
+int b = 5;
+int a = {Kfaifsiaf#@@#%sa };
+int b = { fsdfdfd fdsfds&
+int c = 3;

@@ -9,6 +9,8 @@ public class Main {
             System.out.println("Por favor, forneça o nome do arquivo como argumento.");
             return;
         }
+
+
         // O nome do arquivo é o primeiro argumento passado
         String caminhoArquivo = args[0];
 
