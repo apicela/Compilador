@@ -156,7 +156,6 @@ public class Lexer {
     private Token readLiteral() throws IOException {
         stringIsClosed = false;
         readch();
-        System.out.println("READ LITERAL CALLED");
         StringBuilder sb = new StringBuilder();
         do {
             if(ch == '}') {
@@ -167,7 +166,6 @@ public class Lexer {
             sb.append(ch);
             readch();
         } while (ch != '\n');
-        System.out.println("UNEXPECTED");
         stringIsClosed = true;
         Token errorToken = new Token(TokenType.ERROR, "Não houve fechamento de string.", "Line error: " + line);
         errors.add(errorToken.getLexeme() + " " + errorToken.getValue());
