@@ -1,1 +1,4 @@
-int pontuacao, pontuacaoMaxina, disponibilidade;
+start
+int _pontuacao, pontuacaoMaxina_, disponibilidade, _;
+START
+end;
