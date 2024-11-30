@@ -1,8 +1,6 @@
 package org.example;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -28,6 +26,7 @@ public class Lexer {
 
     public Lexer(String fileName) throws FileNotFoundException {
         try {
+            ensureSemicolonAtEnd(fileName); // Adiciona o ';' ao final do arquivo, se necessário
             file = new FileReader(fileName);
         } catch (FileNotFoundException e) {
             System.out.println("Arquivo não encontrado");
@@ -35,6 +34,40 @@ public class Lexer {
         }
         reserveLanguageTokens();
     }
+
+    /**
+     * Método para garantir que o arquivo termine com um ponto e vírgula (';').
+     */
+    private void ensureSemicolonAtEnd(String fileName) {
+        try {
+            File file = new File(fileName);
+            if (!file.exists()) {
+                System.err.println("O arquivo não existe: " + fileName);
+                return;
+            }
+
+            StringBuilder content = new StringBuilder();
+            try (FileReader reader = new FileReader(file)) {
+                int ch;
+                while ((ch = reader.read()) != -1) {
+                    content.append((char) ch);
+                }
+            }
+
+            // Verifica se o último caractere do arquivo não é ';'
+
+                try (FileWriter writer = new FileWriter(file, true)) {
+                    writer.write(";");
+                    System.out.println("Caractere ';' adicionado ao final do arquivo.");
+                }
+
+        } catch (IOException e) {
+            System.err.println("Erro ao verificar/adicionar ';' ao final do arquivo: " + e.getMessage());
+        }
+    }
+
+    // O restante do código permanece inalterado...
+
 
     public void processTokens() throws IOException {
         while (!finished) {
@@ -267,11 +300,12 @@ public class Lexer {
 
         // Imprimindo a tabela de TOKENS (sem VALUE)
         System.out.println("=====================");
-        System.out.println("      TOKENS: " + list.size());
+        System.out.println("      TOKENS: " + (list.size()-1));
         System.out.println("=====================");
         System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", "TOKEN TYPE", "LEXEME");
 
-        for (Token t : list) {
+        for (int i=0;i < list.size()-1;i++) {
+            Token t = list.get(i);
             System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n",
                     t.getTokenType(), t.getLexeme());
         }
