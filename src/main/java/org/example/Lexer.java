@@ -3,7 +3,10 @@ package org.example;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class Lexer {
@@ -14,7 +17,6 @@ public class Lexer {
     private static final Pattern STRING = Pattern.compile("\"[^\"]*\"");
     public static int line = 1; //contador de linhas
     public static int col = 0;
-    // Criando uma lista para armazenar os tokens (deve ser definida em algum lugar no código)
     List<Token> list = new ArrayList<>();
     private char ch = ' '; //caractere lido do arquivo
     private boolean finished = false;
@@ -37,7 +39,7 @@ public class Lexer {
     public void processTokens() throws IOException {
         while (!finished) {
             Token t = scan();
-            if(t != null){
+            if (t != null) {
                 list.add(t);
                 switch (t.getTokenType()) {
                     case TokenType.UNEXPECTED:
@@ -65,8 +67,8 @@ public class Lexer {
     }
 
     private void finishProcess() {
-        if(!commentIsClosed){
-            Token error = new Token(TokenType.ERROR, "A seção de comentarios '/*' foi aberta, entretanto não houve fechamento '*/'" ,"Erro na linha: " + commentLineStart);
+        if (!commentIsClosed) {
+            Token error = new Token(TokenType.ERROR, "A seção de comentarios '/*' foi aberta, entretanto não houve fechamento '*/'", "Erro na linha: " + commentLineStart);
             list.add(error);
             errors.add(error.toString());
         }
@@ -85,13 +87,12 @@ public class Lexer {
     public Token scan() throws IOException {
         //Desconsidera delimitadores na entrada
         for (; ; readch()) {
-            if(finished) break;
+            if (finished) break;
             else if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\b') continue;
-            else if (ch == '\n'){
+            else if (ch == '\n') {
                 line++; //conta linhas
                 col = 0;
-            }
-            else break;
+            } else break;
         }
         switch (ch) {
             //Operadores
@@ -106,7 +107,7 @@ public class Lexer {
             case '/':
                 readch();
                 if (ch == '/') return readAndIgnoreComment(false);
-                else if(ch == '*') return readAndIgnoreComment(true);
+                else if (ch == '*') return readAndIgnoreComment(true);
                 else return symbolsTable.get("/");
             case '&':
                 if (readch('&')) return symbolsTable.get("&&");
@@ -136,11 +137,11 @@ public class Lexer {
             do {
                 sb.append(ch);
                 readch();
-            } while (ch != ';' && ch != '\n' && ch != ' ' && ch !=',' && ch != '(' && ch != ')');
+            } while (ch != ';' && ch != '\n' && ch != ' ' && ch != ',' && ch != '(' && ch != ')');
             boolean isFloat = FLOAT.matcher(sb.toString()).matches();
             boolean isInteger = INTEGER.matcher(sb.toString()).matches();
-            if(isFloat) return new Token(TokenType.CONSTANT_FLOAT, sb.toString(), null);
-            else if(isInteger) return new Token(TokenType.CONSTANT_INTEGER, sb.toString(), null);
+            if (isFloat) return new Token(TokenType.CONSTANT_FLOAT, sb.toString(), null);
+            else if (isInteger) return new Token(TokenType.CONSTANT_INTEGER, sb.toString(), null);
             else return unexpectedToken(sb.toString());
         }
         //Identificadores
@@ -151,7 +152,7 @@ public class Lexer {
                 readch();
             } while (Character.isLetterOrDigit(ch) || ch == '_');
             boolean idMatch = IDENTIFIER.matcher(sb.toString()).matches();
-            if(!idMatch) {
+            if (!idMatch) {
                 return unexpectedToken(sb.toString());
             }
             String s = sb.toString();
@@ -175,7 +176,7 @@ public class Lexer {
         readch();
         StringBuilder sb = new StringBuilder();
         do {
-            if(ch == '}') {
+            if (ch == '}') {
                 readch();
                 return new Token(TokenType.LITERAL, sb.toString(), null);
             }
@@ -184,34 +185,35 @@ public class Lexer {
         } while (ch != '\n');
         Token errorToken = new Token(TokenType.ERROR, "Não houve fechamento de string.", "Erro na linha: " + line);
         errors.add(errorToken.getLexeme() + " " + errorToken.getValue());
-        return  errorToken;
+        return errorToken;
     }
 
     private Token readAndIgnoreComment(boolean multiline) throws IOException {
         commentLineStart = line;
         readch();
-        if(multiline){
+        if (multiline) {
             commentIsClosed = false;
-            while(!finished){
+            while (!finished) {
                 readch();
-                if(ch == '*'){
-                    if(readch('/')) {
+                if (ch == '*') {
+                    if (readch('/')) {
                         commentIsClosed = true;
                         break;
                     }
                 }
             }
-        } else{
-            do{
+        } else {
+            do {
                 readch();
-            }while (ch != '\n');
+            } while (ch != '\n');
         }
         return null;
     }
 
     private Token unexpectedToken(String lexeme) {
-        if (lexeme.equals(" ") || lexeme.equals("\t") ||lexeme.equals("\r") || lexeme.equals("\b") ||lexeme.equals( "\n") || lexeme.equals("\u0000")) return null;
-        return new Token(TokenType.UNEXPECTED, lexeme, "Erro na linha: " + line + " coluna: "+ col);
+        if (lexeme.equals(" ") || lexeme.equals("\t") || lexeme.equals("\r") || lexeme.equals("\b") || lexeme.equals("\n") || lexeme.equals("\u0000"))
+            return null;
+        return new Token(TokenType.UNEXPECTED, lexeme, "Erro na linha: " + line + " coluna: " + col);
     }
 
     /* Método para inserir palavras reservadas na HashTable */
@@ -300,15 +302,22 @@ public class Lexer {
             System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n",
                     t.getTokenType(), t.getLexeme());
         }
+        if(errors.isEmpty()){
+            System.out.println("CÓDIGO FONTE VÁLIDO. NÃO HOUVE ERROS ENCONTRADOS.");
+        }else{
 
-        // Imprimindo erros
-        System.out.println("=====================");
-        System.out.println("      ERROS: " + errors.size());
-        System.out.println("=====================");
+            // Imprimindo erros
+            System.out.println("=====================");
+            System.out.println("      ERROS: " + errors.size());
+            System.out.println("=====================");
 
-        for (String error : errors) {
-            System.out.println(error);
+            for (String error : errors) {
+                System.out.println(error);
+            }
+            System.out.println("=====================");
+            System.out.println("CÓDIGO FONTE INVÁLIDO.");
         }
+
     }
 
 
