@@ -1,6 +1,7 @@
 // fal apoga
+|
 int a,b, f& // dasihdsai
-int ola;
+int ola = { dasjdsoadsa }};
 
 /*
 

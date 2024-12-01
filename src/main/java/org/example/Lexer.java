@@ -13,6 +13,7 @@ public class Lexer {
     private static final Pattern FLOAT = Pattern.compile("\\d+\\.\\d+"); // Para números com ponto
     private static final Pattern STRING = Pattern.compile("\"[^\"]*\"");
     public static int line = 1; //contador de linhas
+    public static int col = 1;
     // Criando uma lista para armazenar os tokens (deve ser definida em algum lugar no código)
     List<Token> list = new ArrayList<>();
     private char ch = ' '; //caractere lido do arquivo
@@ -53,6 +54,7 @@ public class Lexer {
     }
 
     private void readch() throws IOException {
+        col++;
         int nextChar = file.read();
         if (nextChar == -1) {
             finished = true;
@@ -75,7 +77,10 @@ public class Lexer {
     /* Lê o próximo caractere do arquivo e verifica se é igual a c*/
     private boolean readch(char c) throws IOException {
         readch();
-        if (ch != c) return false;
+        if (ch != c) {
+            col--;
+            return false;
+        }
         ch = ' ';
         return true;
     }
@@ -85,7 +90,10 @@ public class Lexer {
         for (; ; readch()) {
             if(finished) break;
             else if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\b') continue;
-            else if (ch == '\n') line++; //conta linhas
+            else if (ch == '\n'){
+                line++; //conta linhas
+                col = 1;
+            }
             else break;
         }
         switch (ch) {
@@ -200,7 +208,7 @@ public class Lexer {
 
     private Token unexpectedToken(String lexeme) {
         if (lexeme.equals(" ") || lexeme.equals("\t") ||lexeme.equals("\r") || lexeme.equals("\b") ||lexeme.equals( "\n") || lexeme.equals("\u0000")) return null;
-        return new Token(TokenType.UNEXPECTED, lexeme, "Line error: " + line);
+        return new Token(TokenType.UNEXPECTED, lexeme, "Line error: " + line + " | Column error: "+ col);
     }
 
     /* Método para inserir palavras reservadas na HashTable */
