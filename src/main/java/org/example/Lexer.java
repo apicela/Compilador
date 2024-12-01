@@ -39,6 +39,8 @@ public class Lexer {
     public void processTokens() throws IOException {
         while (!finished) {
             Token t = scan();
+
+
             if(t != null){
                 list.add(t);
                 switch (t.getTokenType()) {
@@ -90,7 +92,7 @@ public class Lexer {
                 return symbolsTable.get("(");
             case ')':
                 readch();
-               // ch=' ';
+                // ch=' ';
                 return symbolsTable.get(")");
             case '{':
                 return readLiteral();
@@ -135,10 +137,10 @@ public class Lexer {
             do {
                 sb.append(ch);
                 readch();
-            } while (ch != ';' && ch != '\n' && ch != ' ' && ch !=',' && ch != '(' && ch != ')');
+            } while (Character.isLetterOrDigit(ch) || ch == '_');
             boolean idMatch = IDENTIFIER.matcher(sb.toString()).matches();
             if(!idMatch) {
-               // readch();
+                // readch();
                 return unexpectedToken(sb.toString());
             }
             String s = sb.toString();
