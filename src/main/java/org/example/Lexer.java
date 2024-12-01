@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 public class Lexer {
@@ -24,6 +23,7 @@ public class Lexer {
     private Hashtable<String, Token> symbolsTable = new Hashtable();
     private List<String> errors = new ArrayList<>();
     private boolean commentIsClosed = true;
+    private int commentLineStart = 0;
     private boolean stringIsClosed = true;
 
     public Lexer(String fileName) throws FileNotFoundException {
@@ -39,8 +39,6 @@ public class Lexer {
     public void processTokens() throws IOException {
         while (!finished) {
             Token t = scan();
-
-
             if(t != null){
                 list.add(t);
                 switch (t.getTokenType()) {
@@ -54,19 +52,33 @@ public class Lexer {
                 }
             }
         }
+        finishProcess();
     }
 
     private void readch() throws IOException {
         int nextChar = file.read();
         if (nextChar == -1) {
-            if(!commentIsClosed) errors.add("ERRO: A seção de comentarios '/*' foi aberta, entretanto não houve fechamento '*/'");
-            if(!stringIsClosed) errors.add("ERRO: A seção de string '{' foi aberta, entretanto não houve fechamento '}'");
-            printResults();
-            file.close(); // Fecha o arquivo após a leitura completa
-            System.exit(0);
+//            if(!commentIsClosed) errors.add("ERRO: A seção de comentarios '/*' foi aberta, entretanto não houve fechamento '*/'");
+//            if(!stringIsClosed) errors.add("ERRO: A seção de string '{' foi aberta, entretanto não houve fechamento '}'");
+//            printResults();
+//            file.close(); // Fecha o arquivo após a leitura completa
+//            System.exit(0);
+            finished = true;
+            ch = '\0';
+        //    file.close();
         } else {
             ch = (char) nextChar;
         }
+    }
+
+    private void finishProcess() {
+        if(!commentIsClosed){
+            Token error = new Token(TokenType.ERROR, "A seção de comentarios '/*' foi aberta, entretanto não houve fechamento '*/'" ,"Line error: " + commentLineStart);
+            list.add(error);
+            errors.add(error.toString());
+        }
+        printResults();
+        System.exit(0);
     }
 
     /* Lê o próximo caractere do arquivo e verifica se é igual a c*/
@@ -80,7 +92,8 @@ public class Lexer {
     public Token scan() throws IOException {
         //Desconsidera delimitadores na entrada
         for (; ; readch()) {
-            if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\b') continue;
+            if(finished) break;
+            else if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\b') continue;
             else if (ch == '\n') line++; //conta linhas
             else break;
         }
@@ -124,7 +137,6 @@ public class Lexer {
                 sb.append(ch);
                 readch();
             } while (ch != ';' && ch != '\n' && ch != ' ' && ch !=',' && ch != '(' && ch != ')');
-            System.out.println("BEFORE WHILE: " + sb);
             boolean isFloat = FLOAT.matcher(sb.toString()).matches();
             boolean isInteger = INTEGER.matcher(sb.toString()).matches();
             if(isFloat) return new Token(TokenType.CONSTANT_FLOAT, sb.toString(), null);
@@ -140,7 +152,6 @@ public class Lexer {
             } while (Character.isLetterOrDigit(ch) || ch == '_');
             boolean idMatch = IDENTIFIER.matcher(sb.toString()).matches();
             if(!idMatch) {
-                // readch();
                 return unexpectedToken(sb.toString());
             }
             String s = sb.toString();
@@ -180,10 +191,11 @@ public class Lexer {
     }
 
     private Token readAndIgnoreComment(boolean multiline) throws IOException {
+        commentLineStart = line;
         readch();
         if(multiline){
             commentIsClosed = false;
-            while(true){
+            while(!finished){
                 readch();
                 if(ch == '*'){
                     if(readch('/')) {

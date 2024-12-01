@@ -1,1 +1,8 @@
-a&B;
+// fal apoga
+int a,b, f& // dasihdsai
+int ola;
+
+/*
+
+dsaiofsai
+*/

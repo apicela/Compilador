@@ -34,7 +34,6 @@ public class Token {
     public String toString() {
         return this.tokenType +
                 " | " + this.lexeme
-                  + (this.tokenType == TokenType.UNEXPECTED ? " | " + this.value : "")
-                ;
+                + ((this.tokenType == TokenType.UNEXPECTED || this.tokenType == TokenType.ERROR) ? " | " + this.value : "");
     }
 }
