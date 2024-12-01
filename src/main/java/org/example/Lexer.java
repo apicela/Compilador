@@ -3,9 +3,7 @@ package org.example;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class Lexer {
@@ -20,11 +18,10 @@ public class Lexer {
     private char ch = ' '; //caractere lido do arquivo
     private boolean finished = false;
     private FileReader file;
-    private Hashtable<String, Token> symbolsTable = new Hashtable();
+    private Hashtable<String, Token> symbolsTable = new Hashtable<>();
     private List<String> errors = new ArrayList<>();
     private boolean commentIsClosed = true;
     private int commentLineStart = 0;
-    private boolean stringIsClosed = true;
 
     public Lexer(String fileName) throws FileNotFoundException {
         try {
@@ -58,14 +55,8 @@ public class Lexer {
     private void readch() throws IOException {
         int nextChar = file.read();
         if (nextChar == -1) {
-//            if(!commentIsClosed) errors.add("ERRO: A seção de comentarios '/*' foi aberta, entretanto não houve fechamento '*/'");
-//            if(!stringIsClosed) errors.add("ERRO: A seção de string '{' foi aberta, entretanto não houve fechamento '}'");
-//            printResults();
-//            file.close(); // Fecha o arquivo após a leitura completa
-//            System.exit(0);
             finished = true;
             ch = '\0';
-        //    file.close();
         } else {
             ch = (char) nextChar;
         }
@@ -99,13 +90,11 @@ public class Lexer {
         }
         switch (ch) {
             //Operadores
-            case '(': // b
+            case '(':
                 readch();
-                //  ch=' ';
                 return symbolsTable.get("(");
             case ')':
                 readch();
-                // ch=' ';
                 return symbolsTable.get(")");
             case '{':
                 return readLiteral();
@@ -172,19 +161,16 @@ public class Lexer {
     }
 
     private Token readLiteral() throws IOException {
-        stringIsClosed = false;
         readch();
         StringBuilder sb = new StringBuilder();
         do {
             if(ch == '}') {
                 readch();
-                stringIsClosed =  true;
                 return new Token(TokenType.LITERAL, sb.toString(), null);
             }
             sb.append(ch);
             readch();
         } while (ch != '\n');
-        stringIsClosed = true;
         Token errorToken = new Token(TokenType.ERROR, "Não houve fechamento de string.", "Line error: " + line);
         errors.add(errorToken.getLexeme() + " " + errorToken.getValue());
         return  errorToken;
@@ -213,7 +199,7 @@ public class Lexer {
     }
 
     private Token unexpectedToken(String lexeme) {
-        if (lexeme.equals(" ") || lexeme.equals("\t") ||lexeme.equals("\r") || lexeme.equals("\b") ||lexeme.equals( "\n")) return null;
+        if (lexeme.equals(" ") || lexeme.equals("\t") ||lexeme.equals("\r") || lexeme.equals("\b") ||lexeme.equals( "\n") || lexeme.equals("\u0000")) return null;
         return new Token(TokenType.UNEXPECTED, lexeme, "Line error: " + line);
     }
 
@@ -276,17 +262,22 @@ public class Lexer {
         final int COL_WIDTH_2 = 15; // Largura para "LEXEME"
 
         // Cabeçalho da tabela
-//        System.out.println("=====================");
-//        System.out.println("TABELA DE SIMBOLOS: " + symbolsTable.size());
-//        System.out.println("=====================");
-//
-//        System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", "TOKEN TYPE", "LEXEME");
-//
-//        for (Map.Entry<String, Token> entry : symbolsTable.entrySet()) {
-//            Token valor = entry.getValue();
-//            // Ajustar o método toString do Token para retornar os valores corretamente
-//            System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", valor.getTokenType(), valor.getLexeme());
-//        }
+        List<Map.Entry<String, Token>> sortedEntries = new ArrayList<>(symbolsTable.entrySet());
+
+// Ordenar as entradas pela propriedade TokenType de Token
+        sortedEntries.sort((entry1, entry2) -> entry1.getValue().getTokenType().compareTo(entry2.getValue().getTokenType()));
+
+        System.out.println("=====================");
+        System.out.println("TABELA DE SIMBOLOS: " + symbolsTable.size());
+        System.out.println("=====================");
+
+        System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", "TOKEN TYPE", "LEXEME");
+
+        for (Map.Entry<String, Token> entry : sortedEntries) {
+            Token valor = entry.getValue();
+            // Ajustar o método toString do Token para retornar os valores corretamente
+            System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", valor.getTokenType(), valor.getLexeme());
+        }
 
         // Imprimindo a tabela de TOKENS (sem VALUE)
         System.out.println("=====================");
