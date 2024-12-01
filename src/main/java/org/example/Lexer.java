@@ -137,7 +137,7 @@ public class Lexer {
             do {
                 sb.append(ch);
                 readch();
-            } while (Character.isLetterOrDigit(ch));
+            } while (Character.isLetterOrDigit(ch) || ch == '_');
             boolean idMatch = IDENTIFIER.matcher(sb.toString()).matches();
             if(!idMatch) {
                // readch();
