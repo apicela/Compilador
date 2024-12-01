@@ -13,7 +13,7 @@ public class Lexer {
     private static final Pattern FLOAT = Pattern.compile("\\d+\\.\\d+"); // Para números com ponto
     private static final Pattern STRING = Pattern.compile("\"[^\"]*\"");
     public static int line = 1; //contador de linhas
-    public static int col = 1;
+    public static int col = 0;
     // Criando uma lista para armazenar os tokens (deve ser definida em algum lugar no código)
     List<Token> list = new ArrayList<>();
     private char ch = ' '; //caractere lido do arquivo
@@ -66,7 +66,7 @@ public class Lexer {
 
     private void finishProcess() {
         if(!commentIsClosed){
-            Token error = new Token(TokenType.ERROR, "A seção de comentarios '/*' foi aberta, entretanto não houve fechamento '*/'" ,"Line error: " + commentLineStart);
+            Token error = new Token(TokenType.ERROR, "A seção de comentarios '/*' foi aberta, entretanto não houve fechamento '*/'" ,"Erro na linha: " + commentLineStart);
             list.add(error);
             errors.add(error.toString());
         }
@@ -77,10 +77,7 @@ public class Lexer {
     /* Lê o próximo caractere do arquivo e verifica se é igual a c*/
     private boolean readch(char c) throws IOException {
         readch();
-        if (ch != c) {
-            col--;
-            return false;
-        }
+        if (ch != c) return false;
         ch = ' ';
         return true;
     }
@@ -92,7 +89,7 @@ public class Lexer {
             else if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\b') continue;
             else if (ch == '\n'){
                 line++; //conta linhas
-                col = 1;
+                col = 0;
             }
             else break;
         }
@@ -113,10 +110,16 @@ public class Lexer {
                 else return symbolsTable.get("/");
             case '&':
                 if (readch('&')) return symbolsTable.get("&&");
-                else return unexpectedToken("&");
+                else {
+                    col--;
+                    return unexpectedToken("&");
+                }
             case '|':
                 if (readch('|')) return symbolsTable.get("||");
-                else return unexpectedToken("|");
+                else {
+                    col--;
+                    return unexpectedToken("|");
+                }
             case '=':
                 if (readch('=')) return symbolsTable.get("==");
                 else return symbolsTable.get("=");
@@ -179,7 +182,7 @@ public class Lexer {
             sb.append(ch);
             readch();
         } while (ch != '\n');
-        Token errorToken = new Token(TokenType.ERROR, "Não houve fechamento de string.", "Line error: " + line);
+        Token errorToken = new Token(TokenType.ERROR, "Não houve fechamento de string.", "Erro na linha: " + line);
         errors.add(errorToken.getLexeme() + " " + errorToken.getValue());
         return  errorToken;
     }
@@ -208,7 +211,7 @@ public class Lexer {
 
     private Token unexpectedToken(String lexeme) {
         if (lexeme.equals(" ") || lexeme.equals("\t") ||lexeme.equals("\r") || lexeme.equals("\b") ||lexeme.equals( "\n") || lexeme.equals("\u0000")) return null;
-        return new Token(TokenType.UNEXPECTED, lexeme, "Line error: " + line + " | Column error: "+ col);
+        return new Token(TokenType.UNEXPECTED, lexeme, "Erro na linha: " + line + " coluna: "+ col);
     }
 
     /* Método para inserir palavras reservadas na HashTable */
