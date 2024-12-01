@@ -15,8 +15,6 @@ public class Lexer {
     private static final Pattern INTEGER = Pattern.compile("\\d+");  // Para inteiros
     private static final Pattern FLOAT = Pattern.compile("\\d+\\.\\d+"); // Para números com ponto
     private static final Pattern STRING = Pattern.compile("\"[^\"]*\"");
-    private static final Pattern DELIMITER = Pattern.compile("[^;\\n \\(\\),\\*]");
-    //  (ch != ';' && ch != '\n' && ch != ' ' && ch !=',' && ch != '(' && ch != ')');
     public static int line = 1; //contador de linhas
     // Criando uma lista para armazenar os tokens (deve ser definida em algum lugar no código)
     List<Token> list = new ArrayList<>();
@@ -123,7 +121,7 @@ public class Lexer {
             do {
                 sb.append(ch);
                 readch();
-            } while (ch != ';' && ch != '\n' && ch != ' ' && ch !=',' && ch != '(' && ch != ')' && ch != '*');
+            } while (ch != ';' && ch != '\n' && ch != ' ' && ch !=',' && ch != '(' && ch != ')');
             System.out.println("BEFORE WHILE: " + sb);
             boolean isFloat = FLOAT.matcher(sb.toString()).matches();
             boolean isInteger = INTEGER.matcher(sb.toString()).matches();
@@ -137,9 +135,10 @@ public class Lexer {
             do {
                 sb.append(ch);
                 readch();
-            } while (ch != ';' && ch != '\n' && ch != ' ' && ch !=',' && ch != '(' && ch != ')'  && ch != '*');
+            } while (ch != ';' && ch != '\n' && ch != ' ' && ch !=',' && ch != '(' && ch != ')');
             boolean idMatch = IDENTIFIER.matcher(sb.toString()).matches();
             if(!idMatch) {
+               // readch();
                 return unexpectedToken(sb.toString());
             }
             String s = sb.toString();
