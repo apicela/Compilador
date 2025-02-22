@@ -11,6 +11,14 @@ public class Parser {
         this.tokens = tokens;
     }
 
+    private Token lookahead() {
+        if (current + 1 < tokens.size()) {
+            return tokens.get(current + 1);
+        }
+        System.out.println("Nenhum proximo token aqui, provavel erro");
+        return null; // Ou um token especial representando EOF
+    }
+
     private Token peek() {
         return tokens.get(current);
     }
@@ -48,57 +56,64 @@ public class Parser {
     }
 
     private void program() {
-        match(TokenType.START);
+        if(!match(TokenType.START)){
+            throw new RuntimeException("Erro de sintaxe: esperado 'START', mas encontrado " + peek().getType());
+        }
         declList();
         stmtList();
         match(TokenType.EXIT);
     }
 
     private void declList() {
-            decl();
-    }
-
-    private void decl() {
-        type();
-        identList();
-        match(TokenType.SEMICOLON);
-    }
-
-    private void type() {
-        if (match(TokenType.TYPE)) {
-            identList();
-        } else {
-            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `type`. Topo da pilha: " + peek().toString());
-            throw new RuntimeException(parserErrors.get(0).toString());
+        if(decl()){
+            while(decl()){ }
         }
+    }
+
+    private boolean decl() {
+        if(!type()){
+            return false; //ou seja nao conseguiu formar um decl
+        }
+
+        identList();
+        if(!match(TokenType.SEMICOLON)){
+            throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType());
+        }
+        return true;
+    }
+
+    private boolean type() {
+        return match(TokenType.TYPE);
     }
 
     private void identList() {
-        identifier();
+        if(!identifier()){
+            throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER', mas encontrado " + peek().getType());
+        }
+
         while (match(TokenType.COMMA)) {
-            identifier();
+            if(!identifier()) {
+                throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER', mas encontrado " + peek().getType());
+            }
         }
     }
 
-    private void identifier() {
-        if (match(TokenType.IDENTIFIER)) {
-            // Identifier matched
-        } else {
-            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `identifier`. Topo da pilha: " + peek().toString());
-            throw new RuntimeException(parserErrors.get(0).toString());
-        }
+    private boolean identifier() {
+        return match(TokenType.IDENTIFIER);
     }
 
     private void stmtList() {
-        while (!check(TokenType.EXIT)) {
-            stmt();
-        }
+        stmt();
+        //todo
+        //while(stmt()){ }
     }
 
     private void stmt() {
         if (check(TokenType.IDENTIFIER)) {
             assignStmt();
-            match(TokenType.SEMICOLON);
+            if(!match(TokenType.SEMICOLON)){
+                throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType());
+            }
         } else if (match(TokenType.IF)) {
             ifStmt();
         } else if (match(TokenType.DO)) {
@@ -110,15 +125,22 @@ public class Parser {
             writeStmt();
             match(TokenType.SEMICOLON);
         } else {
-            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `stmt`. Topo da pilha: " + peek().toString());
-            throw new RuntimeException(parserErrors.get(0).toString());
+            throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER' ou 'IF' ou 'DO' ou 'SCAN' ou 'PRINT', mas encontrado " + peek().getType());
         }
     }
 
     private void assignStmt() {
         identifier();
-        match(TokenType.EQUALS);
+        if(!match(TokenType.EQUALS)){
+            throw new RuntimeException("Erro de sintaxe: esperado 'EQUALS', mas encontrado " + peek().getType());
+        }
+
         simpleExpr();
+    }
+
+    private void simpleExpr() {
+        term();
+        simpleExprPrime();
     }
 
     private void ifStmt() {
@@ -173,10 +195,6 @@ public class Parser {
         }
     }
 
-    private void simpleExpr() {
-        term();
-        simpleExprPrime();
-    }
 
     private void simpleExprPrime() {
         if (match(TokenType.ADDOP)) {
@@ -206,14 +224,15 @@ public class Parser {
     }
 
     private void factor() {
-        if (match(TokenType.IDENTIFIER, TokenType.CONSTANT)) {
-            // Factor matched
+        if (match(TokenType.IDENTIFIER, TokenType.CONSTANT_INTEGER, TokenType.CONSTANT_FLOAT, TokenType.LITERAL)) {
+
         } else if (match(TokenType.OPEN_ROUND)) {
             expression();
-            match(TokenType.CLOSE_ROUND);
+            if(!match(TokenType.CLOSE_ROUND)){
+                throw new RuntimeException("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType());
+            }
         } else {
-            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `factor`. Topo da pilha: " + peek().toString());
-            throw new RuntimeException(parserErrors.get(0).toString());
+            throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER' ou 'CONSTANT_INTEGER' ou 'LITERAL' ou 'OPEN_ROUND', mas encontrado " + peek().getType());
         }
 
     }
