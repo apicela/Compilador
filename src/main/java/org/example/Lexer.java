@@ -2,6 +2,7 @@ package org.example;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -17,6 +18,7 @@ public class Lexer {
     private static final Pattern STRING = Pattern.compile("\"[^\"]*\"");
     public static int line = 1; //contador de linhas
     public static int col = 0;
+
     List<Token> list = new ArrayList<>();
     private char ch = ' '; //caractere lido do arquivo
     private boolean finished = false;
@@ -25,15 +27,21 @@ public class Lexer {
     private List<String> errors = new ArrayList<>();
     private boolean commentIsClosed = true;
     private int commentLineStart = 0;
+    private final String fileName;
 
     public Lexer(String fileName) throws FileNotFoundException {
         try {
+            this.fileName = fileName;
             file = new FileReader(fileName);
         } catch (FileNotFoundException e) {
             System.out.println("Arquivo não encontrado");
             throw e;
         }
         reserveLanguageTokens();
+    }
+
+    public void restart() throws IOException {
+         new Lexer(this.fileName).processTokens();
     }
 
     public void processTokens() throws IOException {
@@ -68,9 +76,16 @@ public class Lexer {
 
     private void finishProcess() {
         if (!commentIsClosed) {
-            Token error = new Token(TokenType.ERROR, "A seção de comentarios '/*' foi aberta, entretanto não houve fechamento '*/'", "Erro na linha: " + commentLineStart);
-            list.add(error);
-            errors.add(error.toString());
+            String stringNotClosedMessage = "A seção de comentarios '/*' foi aberta, entretanto não houve fechamento '*/'. Linha: " + commentLineStart;
+            try (FileWriter writer = new FileWriter(fileName, true)) {
+                writer.write("*/");
+                writer.flush();
+                System.out.println(stringNotClosedMessage);
+                System.out.println("Houve um erro de comentário não fechado. Código-fonte corrigido e iremos re-executar!");
+                restart();
+            } catch (IOException e) {
+                System.err.println("Erro ao escrever no arquivo: " + e.getMessage());
+            }
         }
         printResults();
         System.exit(0);
