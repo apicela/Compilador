@@ -26,6 +26,8 @@ public class Main {
             Parser parser = new Parser(tokens);
             parser.start();
 
+        }  catch (RuntimeException e){
+            System.out.println(e.getMessage());
         } catch (Exception e) {
             System.err.println("Erro ao ler o arquivo: " + e.getMessage());
         }

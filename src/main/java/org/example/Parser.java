@@ -55,9 +55,7 @@ public class Parser {
     }
 
     private void declList() {
-        while (check(TokenType.CONSTANT)) {
             decl();
-        }
     }
 
     private void decl() {
@@ -67,11 +65,11 @@ public class Parser {
     }
 
     private void type() {
-        if (match(TokenType.CONSTANT)) {
-            // Type matched
+        if (match(TokenType.TYPE)) {
+            identList();
         } else {
-            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `type`");
-            throw new RuntimeException("erro");
+            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `type`. Topo da pilha: " + peek().toString());
+            throw new RuntimeException(parserErrors.get(0).toString());
         }
     }
 
@@ -86,8 +84,8 @@ public class Parser {
         if (match(TokenType.IDENTIFIER)) {
             // Identifier matched
         } else {
-            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `identifier`");
-            throw new RuntimeException("erro");
+            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `identifier`. Topo da pilha: " + peek().toString());
+            throw new RuntimeException(parserErrors.get(0).toString());
         }
     }
 
@@ -112,7 +110,8 @@ public class Parser {
             writeStmt();
             match(TokenType.SEMICOLON);
         } else {
-            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `stmt`");
+            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `stmt`. Topo da pilha: " + peek().toString());
+            throw new RuntimeException(parserErrors.get(0).toString());
         }
     }
 
@@ -213,8 +212,8 @@ public class Parser {
             expression();
             match(TokenType.CLOSE_ROUND);
         } else {
-            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `factor`");
-            throw new RuntimeException("erro");
+            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `factor`. Topo da pilha: " + peek().toString());
+            throw new RuntimeException(parserErrors.get(0).toString());
         }
 
     }
