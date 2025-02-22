@@ -1,4 +1,4 @@
 start
     int a;
-    if a>b then a=b; b=a end
+    if a>b then a=b; b=a; end if a>b then a=a; end
 exit

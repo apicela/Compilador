@@ -104,15 +104,16 @@ public class Parser {
         return match(TokenType.IDENTIFIER);
     }
 
-    int obrigatorio = 1;
+
     private void stmtList() {
-        stmt();
+        int obrigatorio = 1;
+        stmt(obrigatorio);
         obrigatorio=0;
-        while(stmt()){ }
-        obrigatorio=1;
+        while(stmt(obrigatorio)){ }
+        //obrigatorio=1;
     }
 
-    private boolean stmt() {
+    private boolean stmt(int obrigatorio) {
         if (check(TokenType.IDENTIFIER)) {
             assignStmt();
             if(!match(TokenType.SEMICOLON)){
