@@ -1,9 +1,11 @@
 package org.example;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Parser {
     private final List<Token> tokens;
     private int current = 0;
+    private final List<String> parserErrors = new ArrayList<String>();
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -41,7 +43,7 @@ public class Parser {
         return false;
     }
 
-    public void parse() {
+    public void start() {
         program();
     }
 
@@ -68,7 +70,8 @@ public class Parser {
         if (match(TokenType.CONSTANT)) {
             // Type matched
         } else {
-            throw new RuntimeException("Expected type");
+            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `type`");
+            throw new RuntimeException("erro");
         }
     }
 
@@ -83,7 +86,8 @@ public class Parser {
         if (match(TokenType.IDENTIFIER)) {
             // Identifier matched
         } else {
-            throw new RuntimeException("Expected identifier");
+            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `identifier`");
+            throw new RuntimeException("erro");
         }
     }
 
@@ -108,7 +112,7 @@ public class Parser {
             writeStmt();
             match(TokenType.SEMICOLON);
         } else {
-            throw new RuntimeException("Expected statement");
+            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `stmt`");
         }
     }
 
@@ -209,9 +213,9 @@ public class Parser {
             expression();
             match(TokenType.CLOSE_ROUND);
         } else {
-            throw new RuntimeException("Expected factor");
+            parserErrors.add("Erro na linha " + previous().getLine() + " era esperado um `factor`");
+            throw new RuntimeException("erro");
         }
-
 
     }
 

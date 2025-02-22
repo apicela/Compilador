@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 public class Lexer {
@@ -55,7 +54,7 @@ public class Lexer {
                             errors.add(t.toString());
                             break;
                         case TokenType.IDENTIFIER:
-                            Token identifier = symbolsTable.get(t.getLexeme());
+                            Token identifier = symbolsTable.get(t.getLexeme()).setLine(line);
                             if (identifier == null) symbolsTable.put(t.getLexeme(), t);
                             break;
                     }
@@ -94,7 +93,7 @@ public class Lexer {
                 System.err.println("Erro ao escrever no arquivo: " + e.getMessage());
             }
         }
-        list.add(new Token(TokenType.EOF,"","" ));
+        list.add(new Token(TokenType.EOF,"",line ));
       //  if(!errors.isEmpty()) throw new Exception("Código fonte Invalido");
       //  printResults();
     }
@@ -121,41 +120,41 @@ public class Lexer {
             //Operadores
             case '(':
                 readch();
-                return symbolsTable.get("(");
+                return symbolsTable.get("(").setLine(line);
             case ')':
                 readch();
-                return symbolsTable.get(")");
+                return symbolsTable.get(")").setLine(line);
             case '{':
                 return readLiteral();
             case '/':
                 readch();
                 if (ch == '/') return readAndIgnoreComment(false);
                 else if (ch == '*') return readAndIgnoreComment(true);
-                else return symbolsTable.get("/");
+                else return symbolsTable.get("/").setLine(line);
             case '&':
-                if (readch('&')) return symbolsTable.get("&&");
+                if (readch('&')) return symbolsTable.get("&&").setLine(line);
                 else {
                     col--;
                     return unexpectedToken("&");
                 }
             case '|':
-                if (readch('|')) return symbolsTable.get("||");
+                if (readch('|')) return symbolsTable.get("||").setLine(line);
                 else {
                     col--;
                     return unexpectedToken("|");
                 }
             case '!':
-                if (readch('=')) return symbolsTable.get("!=");
-                else return symbolsTable.get("!");
+                if (readch('=')) return symbolsTable.get("!=").setLine(line);
+                else return symbolsTable.get("!").setLine(line);
             case '=':
-                if (readch('=')) return symbolsTable.get("==");
-                else return symbolsTable.get("=");
+                if (readch('=')) return symbolsTable.get("==").setLine(line);
+                else return symbolsTable.get("=").setLine(line);
             case '<':
-                if (readch('=')) return symbolsTable.get("<=");
-                else return symbolsTable.get("<");
+                if (readch('=')) return symbolsTable.get("<=").setLine(line);
+                else return symbolsTable.get("<").setLine(line);
             case '>':
-                if (readch('=')) return symbolsTable.get(">=");
-                else return symbolsTable.get(">");
+                if (readch('=')) return symbolsTable.get(">=").setLine(line);
+                else return symbolsTable.get(">").setLine(line);
         }
         //Números @TODO
         if (Character.isDigit(ch)) {
@@ -166,8 +165,8 @@ public class Lexer {
             } while (ch != ';' && ch != '\n' && ch != ' ' && ch != ',' && ch != '(' && ch != ')');
             boolean isFloat = FLOAT.matcher(sb.toString()).matches();
             boolean isInteger = INTEGER.matcher(sb.toString()).matches();
-            if (isFloat) return new Token(TokenType.CONSTANT_FLOAT, sb.toString(), null);
-            else if (isInteger) return new Token(TokenType.CONSTANT_INTEGER, sb.toString(), null);
+            if (isFloat) return new Token(TokenType.CONSTANT_FLOAT, sb.toString(), line);
+            else if (isInteger) return new Token(TokenType.CONSTANT_INTEGER, sb.toString(), line);
             else return unexpectedToken(sb.toString());
         }
         //Identificadores
@@ -183,8 +182,8 @@ public class Lexer {
             }
             String s = sb.toString();
             Token w = symbolsTable.get(s);
-            if (w != null) return w; //palavra já existe na HashTable
-            w = new Token(TokenType.IDENTIFIER, s, null);
+            if (w != null) return w.setLine(line); //palavra já existe na HashTable
+            w = new Token(TokenType.IDENTIFIER, s, line);
             symbolsTable.put(s, w);
             return w;
         }
@@ -204,13 +203,13 @@ public class Lexer {
         do {
             if (ch == '}') {
                 readch();
-                return new Token(TokenType.LITERAL, sb.toString(), null);
+                return new Token(TokenType.LITERAL, sb.toString(), line);
             }
             sb.append(ch);
             readch();
         } while (ch != '\n');
-        Token errorToken = new Token(TokenType.ERROR, "Não houve fechamento de string.", "Erro na linha: " + line);
-        errors.add(errorToken.getLexeme() + " " + errorToken.getValue());
+        Token errorToken = new Token(TokenType.ERROR, "Não houve fechamento de string.", line);
+        errors.add(errorToken.getLexeme() + " " + errorToken.getLine());
         return errorToken;
     }
 
@@ -239,7 +238,7 @@ public class Lexer {
     private Token unexpectedToken(String lexeme) {
         if (lexeme.equals(" ") || lexeme.equals("\t") || lexeme.equals("\r") || lexeme.equals("\b") || lexeme.equals("\n") || lexeme.equals("\u0000"))
             return null;
-        return new Token(TokenType.UNEXPECTED, lexeme, "Erro na linha: " + line + " coluna: " + col);
+        return new Token(TokenType.UNEXPECTED, lexeme, line);
     }
 
     /* Método para inserir palavras reservadas na HashTable */

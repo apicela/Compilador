@@ -3,27 +3,28 @@ package org.example;
 public class Token {
     private final TokenType type; //constante que representa o token
     private final String lexeme;
-    private String value;
+    private Integer line;
 
-    public Token(TokenType type, String lexeme, String value) {
+    public Token(TokenType type, String lexeme, Integer value) {
         if (lexeme.equals(" ")) {
             System.out.println("vazio");
         }
         this.type = type;
         this.lexeme = lexeme;
-        this.value = value;
+        this.line = value;
     }
 
     public TokenType getType() {
         return type;
     }
 
-    public String getValue() {
-        return value;
+    public int getLine() {
+        return line;
     }
 
-    public void setValue(String value) {
-        this.value = value;
+    public Token setLine(int line) {
+        this.line = line;
+        return this;
     }
 
     public String getLexeme() {
@@ -34,6 +35,6 @@ public class Token {
     public String toString() {
         return this.type +
                 " | " + this.lexeme
-                + ((this.type == TokenType.UNEXPECTED || this.type == TokenType.ERROR) ? " | " + this.value : "");
+                + ((this.type == TokenType.UNEXPECTED || this.type == TokenType.ERROR) ? " | " + this.line : "");
     }
 }
