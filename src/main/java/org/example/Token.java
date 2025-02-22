@@ -1,21 +1,21 @@
 package org.example;
 
 public class Token {
-    private final TokenType tokenType; //constante que representa o token
+    private final TokenType type; //constante que representa o token
     private final String lexeme;
     private String value;
 
-    public Token(TokenType tokenType, String lexeme, String value) {
+    public Token(TokenType type, String lexeme, String value) {
         if (lexeme.equals(" ")) {
             System.out.println("vazio");
         }
-        this.tokenType = tokenType;
+        this.type = type;
         this.lexeme = lexeme;
         this.value = value;
     }
 
-    public TokenType getTokenType() {
-        return tokenType;
+    public TokenType getType() {
+        return type;
     }
 
     public String getValue() {
@@ -32,8 +32,8 @@ public class Token {
 
     @Override
     public String toString() {
-        return this.tokenType +
+        return this.type +
                 " | " + this.lexeme
-                + ((this.tokenType == TokenType.UNEXPECTED || this.tokenType == TokenType.ERROR) ? " | " + this.value : "");
+                + ((this.type == TokenType.UNEXPECTED || this.type == TokenType.ERROR) ? " | " + this.value : "");
     }
 }

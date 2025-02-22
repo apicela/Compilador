@@ -49,7 +49,7 @@ public class Lexer {
             Token t = scan();
             if (t != null) {
                 list.add(t);
-                switch (t.getTokenType()) {
+                switch (t.getType()) {
                     case TokenType.UNEXPECTED:
                         errors.add(t.toString());
                         break;
@@ -87,6 +87,7 @@ public class Lexer {
                 System.err.println("Erro ao escrever no arquivo: " + e.getMessage());
             }
         }
+        list.add(new Token(TokenType.EOF,null,null ));
         printResults();
         System.exit(0);
     }
@@ -293,7 +294,7 @@ public class Lexer {
         List<Map.Entry<String, Token>> sortedEntries = new ArrayList<>(symbolsTable.entrySet());
 
 // Ordenar as entradas pela propriedade TokenType de Token
-        sortedEntries.sort((entry1, entry2) -> entry1.getValue().getTokenType().compareTo(entry2.getValue().getTokenType()));
+        sortedEntries.sort((entry1, entry2) -> entry1.getValue().getType().compareTo(entry2.getValue().getType()));
 
         System.out.println("=====================");
         System.out.println("TABELA DE SIMBOLOS: " + symbolsTable.size());
@@ -304,7 +305,7 @@ public class Lexer {
         for (Map.Entry<String, Token> entry : sortedEntries) {
             Token valor = entry.getValue();
             // Ajustar o método toString do Token para retornar os valores corretamente
-            System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", valor.getTokenType(), valor.getLexeme());
+            System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", valor.getType(), valor.getLexeme());
         }
 
         // Imprimindo a tabela de TOKENS (sem VALUE)
@@ -315,7 +316,7 @@ public class Lexer {
 
         for (Token t : list) {
             System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n",
-                    t.getTokenType(), t.getLexeme());
+                    t.getType(), t.getLexeme());
         }
         if(errors.isEmpty()){
             System.out.println("CÓDIGO FONTE VÁLIDO. NÃO HOUVE ERROS ENCONTRADOS.");
