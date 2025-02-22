@@ -31,7 +31,7 @@ public class Parser {
         return peek().getType() == type;
     }
 
-    private boolean match(TokenType... types) {
+    private boolean match(TokenType... types) { // verifica o "case" e se for, ele come o token
         for (TokenType type : types) {
             if (check(type)) {
                 advance();
@@ -53,7 +53,7 @@ public class Parser {
     }
 
     private void declList() {
-        while (check(TokenType.INT) || check(TokenType.FLOAT) || check(TokenType.STRING)) {
+        while (check(TokenType.CONSTANT)) {
             decl();
         }
     }
@@ -65,7 +65,7 @@ public class Parser {
     }
 
     private void type() {
-        if (match(TokenType.INT, TokenType.FLOAT, TokenType.STRING)) {
+        if (match(TokenType.CONSTANT)) {
             // Type matched
         } else {
             throw new RuntimeException("Expected type");
@@ -114,7 +114,7 @@ public class Parser {
 
     private void assignStmt() {
         identifier();
-        match(TokenType.ASSIGN);
+        match(TokenType.EQUALS);
         simpleExpr();
     }
 
@@ -140,15 +140,15 @@ public class Parser {
     }
 
     private void readStmt() {
-        match(TokenType.LPAREN);
+        match(TokenType.OPEN_ROUND);
         identifier();
-        match(TokenType.RPAREN);
+        match(TokenType.CLOSE_ROUND);
     }
 
     private void writeStmt() {
-        match(TokenType.LPAREN);
+        match(TokenType.OPEN_ROUND);
         writable();
-        match(TokenType.RPAREN);
+        match(TokenType.CLOSE_ROUND);
     }
 
     private void writable() {
@@ -165,8 +165,7 @@ public class Parser {
 
     private void expression() {
         simpleExpr();
-        if (match(TokenType.EQUALS, TokenType.NOT_EQUALS, TokenType.GREATER,
-                TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
+        if (match(TokenType.EQUALS, TokenType.RELOP)) {
             simpleExpr();
         }
     }
@@ -177,7 +176,7 @@ public class Parser {
     }
 
     private void simpleExprPrime() {
-        if (match(TokenType.PLUS, TokenType.MINUS, TokenType.AND)) {
+        if (match(TokenType.ADDOP)) {
             term();
             simpleExprPrime();
         }
@@ -189,14 +188,14 @@ public class Parser {
     }
 
     private void termPrime() {
-        if (match(TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MODULO, TokenType.AND)) {
+        if (match(TokenType.MULOP)) {
             factorA();
             termPrime();
         }
     }
 
     private void factorA() {
-        if (match(TokenType.NOT, TokenType.DOT)) {
+        if (match(TokenType.NOT, TokenType.ADDOP)) {
             factor();
         } else {
             factor();
@@ -204,13 +203,16 @@ public class Parser {
     }
 
     private void factor() {
-        if (match(TokenType.IDENTIFIER, TokenType.INTEGER_CONST, TokenType.FLOAT_CONST)) {
+        if (match(TokenType.IDENTIFIER, TokenType.CONSTANT)) {
             // Factor matched
-        } else if (match(TokenType.LPAREN)) {
+        } else if (match(TokenType.OPEN_ROUND)) {
             expression();
-            match(TokenType.RPAREN);
+            match(TokenType.CLOSE_ROUND);
         } else {
             throw new RuntimeException("Expected factor");
         }
+
+
     }
+
 }

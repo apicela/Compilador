@@ -40,27 +40,34 @@ public class Lexer {
         reserveLanguageTokens();
     }
 
-    public void restart() throws IOException {
+    public void restart() throws Exception {
          new Lexer(this.fileName).processTokens();
     }
 
-    public void processTokens() throws IOException {
-        while (!finished) {
-            Token t = scan();
-            if (t != null) {
-                list.add(t);
-                switch (t.getType()) {
-                    case TokenType.UNEXPECTED:
-                        errors.add(t.toString());
-                        break;
-                    case TokenType.IDENTIFIER:
-                        Token identifier = symbolsTable.get(t.getLexeme());
-                        if (identifier == null) symbolsTable.put(t.getLexeme(), t);
-                        break;
+    public List<Token> processTokens() throws Exception {
+        try {
+            while (!finished) {
+                Token t = scan();
+                if (t != null) {
+                    list.add(t);
+                    switch (t.getType()) {
+                        case TokenType.UNEXPECTED:
+                            errors.add(t.toString());
+                            break;
+                        case TokenType.IDENTIFIER:
+                            Token identifier = symbolsTable.get(t.getLexeme());
+                            if (identifier == null) symbolsTable.put(t.getLexeme(), t);
+                            break;
+                    }
                 }
             }
+            finishProcess();
+        } catch(Exception e){
+            System.out.println(e.getCause());
+            System.out.println(e.getStackTrace());
+            System.out.println(e.getMessage());
         }
-        finishProcess();
+        return list;
     }
 
     private void readch() throws IOException {
@@ -74,7 +81,7 @@ public class Lexer {
         }
     }
 
-    private void finishProcess() {
+    private void finishProcess() throws Exception {
         if (!commentIsClosed) {
             String stringNotClosedMessage = "A seção de comentarios '/*' foi aberta, entretanto não houve fechamento '*/'. Linha: " + commentLineStart;
             try (FileWriter writer = new FileWriter(fileName, true)) {
@@ -87,9 +94,9 @@ public class Lexer {
                 System.err.println("Erro ao escrever no arquivo: " + e.getMessage());
             }
         }
-        list.add(new Token(TokenType.EOF,null,null ));
-        printResults();
-        System.exit(0);
+        list.add(new Token(TokenType.EOF,"","" ));
+      //  if(!errors.isEmpty()) throw new Exception("Código fonte Invalido");
+      //  printResults();
     }
 
     /* Lê o próximo caractere do arquivo e verifica se é igual a c*/
@@ -137,6 +144,9 @@ public class Lexer {
                     col--;
                     return unexpectedToken("|");
                 }
+            case '!':
+                if (readch('=')) return symbolsTable.get("!=");
+                else return symbolsTable.get("!");
             case '=':
                 if (readch('=')) return symbolsTable.get("==");
                 else return symbolsTable.get("=");
@@ -251,14 +261,14 @@ public class Lexer {
         reserve(new Token(TokenType.TYPE, "float", null));
         reserve(new Token(TokenType.TYPE, "string", null));
         // PALAVRAS RESERVADAS
-        reserve(new Token(TokenType.KEYWORD, "if", null));
-        reserve(new Token(TokenType.KEYWORD, "else", null));
-        reserve(new Token(TokenType.KEYWORD, "then", null));
-        reserve(new Token(TokenType.KEYWORD, "end", null));
-        reserve(new Token(TokenType.KEYWORD, "do", null));
-        reserve(new Token(TokenType.KEYWORD, "while", null));
-        reserve(new Token(TokenType.KEYWORD, "scan", null));
-        reserve(new Token(TokenType.KEYWORD, "print", null));
+        reserve(new Token(TokenType.IF, "if", null));
+        reserve(new Token(TokenType.ELSE, "else", null));
+        reserve(new Token(TokenType.THEN, "then", null));
+        reserve(new Token(TokenType.END, "end", null));
+        reserve(new Token(TokenType.DO, "do", null));
+        reserve(new Token(TokenType.WHILE, "while", null));
+        reserve(new Token(TokenType.SCAN, "scan", null));
+        reserve(new Token(TokenType.PRINT, "print", null));
 // Para os operadores relacionais (relop)
         reserve(new Token(TokenType.RELOP, "==", null));  // Operador igual a
         reserve(new Token(TokenType.RELOP, ">", null));   // Operador maior que
@@ -279,62 +289,62 @@ public class Lexer {
         reserve(new Token(TokenType.MULOP, "&&", null));  // Operador lógico AND
         // EQUALS
         reserve(new Token(TokenType.EQUALS, "=", null));  // Operador lógico AND
-
+        reserve(new Token(TokenType.NOT, "!", null));  // Operador lógico AND
         //ROUND BRACKETS
         reserve(new Token(TokenType.OPEN_ROUND, "(", null));
         reserve(new Token(TokenType.CLOSE_ROUND, ")", null));
     }
 
-    private void printResults() {
-        // Definindo a largura de cada coluna
-        final int COL_WIDTH_1 = 10; // Largura para "TYPE"
-        final int COL_WIDTH_2 = 15; // Largura para "LEXEME"
-
-        // Cabeçalho da tabela
-        List<Map.Entry<String, Token>> sortedEntries = new ArrayList<>(symbolsTable.entrySet());
-
-// Ordenar as entradas pela propriedade TokenType de Token
-        sortedEntries.sort((entry1, entry2) -> entry1.getValue().getType().compareTo(entry2.getValue().getType()));
-
-        System.out.println("=====================");
-        System.out.println("TABELA DE SIMBOLOS: " + symbolsTable.size());
-        System.out.println("=====================");
-
-        System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", "TOKEN TYPE", "LEXEME");
-
-        for (Map.Entry<String, Token> entry : sortedEntries) {
-            Token valor = entry.getValue();
-            // Ajustar o método toString do Token para retornar os valores corretamente
-            System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", valor.getType(), valor.getLexeme());
-        }
-
-        // Imprimindo a tabela de TOKENS (sem VALUE)
-        System.out.println("=====================");
-        System.out.println("      TOKENS: " + list.size());
-        System.out.println("=====================");
-        System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", "TOKEN TYPE", "LEXEME");
-
-        for (Token t : list) {
-            System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n",
-                    t.getType(), t.getLexeme());
-        }
-        if(errors.isEmpty()){
-            System.out.println("CÓDIGO FONTE VÁLIDO. NÃO HOUVE ERROS ENCONTRADOS.");
-        }else{
-
-            // Imprimindo erros
-            System.out.println("=====================");
-            System.out.println("      ERROS: " + errors.size());
-            System.out.println("=====================");
-
-            for (String error : errors) {
-                System.out.println(error);
-            }
-            System.out.println("=====================");
-            System.out.println("CÓDIGO FONTE INVÁLIDO.");
-        }
-
-    }
+//    private void printResults() {
+//        // Definindo a largura de cada coluna
+//        final int COL_WIDTH_1 = 10; // Largura para "TYPE"
+//        final int COL_WIDTH_2 = 15; // Largura para "LEXEME"
+//
+//        // Cabeçalho da tabela
+//        List<Map.Entry<String, Token>> sortedEntries = new ArrayList<>(symbolsTable.entrySet());
+//
+//// Ordenar as entradas pela propriedade TokenType de Token
+//        sortedEntries.sort((entry1, entry2) -> entry1.getValue().getType().compareTo(entry2.getValue().getType()));
+//
+//        System.out.println("=====================");
+//        System.out.println("TABELA DE SIMBOLOS: " + symbolsTable.size());
+//        System.out.println("=====================");
+//
+//        System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", "TOKEN TYPE", "LEXEME");
+//
+//        for (Map.Entry<String, Token> entry : sortedEntries) {
+//            Token valor = entry.getValue();
+//            // Ajustar o método toString do Token para retornar os valores corretamente
+//            System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", valor.getType(), valor.getLexeme());
+//        }
+//
+//        // Imprimindo a tabela de TOKENS (sem VALUE)
+//        System.out.println("=====================");
+//        System.out.println("      TOKENS: " + list.size());
+//        System.out.println("=====================");
+//        System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", "TOKEN TYPE", "LEXEME");
+//
+//        for (Token t : list) {
+//            System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n",
+//                    t.getType(), t.getLexeme());
+//        }
+//        if(errors.isEmpty()){
+//            System.out.println("CÓDIGO FONTE VÁLIDO. NÃO HOUVE ERROS ENCONTRADOS.");
+//        }else{
+//
+//            // Imprimindo erros
+//            System.out.println("=====================");
+//            System.out.println("      ERROS: " + errors.size());
+//            System.out.println("=====================");
+//
+//            for (String error : errors) {
+//                System.out.println(error);
+//            }
+//            System.out.println("=====================");
+//            System.out.println("CÓDIGO FONTE INVÁLIDO.");
+//        }
+//
+//    }
 
 
 }
