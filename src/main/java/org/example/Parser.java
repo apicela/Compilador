@@ -61,7 +61,9 @@ public class Parser {
         }
         declList();
         stmtList();
-        match(TokenType.EXIT);
+        if(!match(TokenType.EXIT)){
+            throw new RuntimeException("Erro de sintaxe: esperado 'EXIT', mas encontrado " + peek().getType());
+        }
     }
 
     private void declList() {
@@ -102,13 +104,15 @@ public class Parser {
         return match(TokenType.IDENTIFIER);
     }
 
+    int obrigatorio = 1;
     private void stmtList() {
         stmt();
-        //todo
-        //while(stmt()){ }
+        obrigatorio=0;
+        while(stmt()){ }
+        obrigatorio=1;
     }
 
-    private void stmt() {
+    private boolean stmt() {
         if (check(TokenType.IDENTIFIER)) {
             assignStmt();
             if(!match(TokenType.SEMICOLON)){
@@ -125,8 +129,14 @@ public class Parser {
             writeStmt();
             match(TokenType.SEMICOLON);
         } else {
-            throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER' ou 'IF' ou 'DO' ou 'SCAN' ou 'PRINT', mas encontrado " + peek().getType());
+            if(obrigatorio==1){
+                throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER' ou 'IF' ou 'DO' ou 'SCAN' ou 'PRINT', mas encontrado " + peek().getType());
+            }else{
+                return false;
+            }
+
         }
+        return true;
     }
 
     private void assignStmt() {
@@ -145,12 +155,16 @@ public class Parser {
 
     private void ifStmt() {
         condition();
-        match(TokenType.THEN);
+        if(!match(TokenType.THEN)){
+            throw new RuntimeException("Erro de sintaxe: esperado 'THEN', mas encontrado " + peek().getType());
+        }
         stmtList();
         if (match(TokenType.ELSE)) {
             stmtList();
         }
-        match(TokenType.END);
+        if(!match(TokenType.END)){
+            throw new RuntimeException("Erro de sintaxe: esperado 'END', mas encontrado " + peek().getType());
+        }
     }
 
     private void whileStmt() {
