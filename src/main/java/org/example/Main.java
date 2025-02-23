@@ -20,21 +20,23 @@ public class Main {
         try {
             Lexer lexer = new Lexer(caminhoArquivo);
             List<Token> tokens = lexer.processTokens();
-            for (Token t : tokens) {
-                System.out.println(t);
-            }
+//            for (Token t : tokens) {
+//                System.out.println(t);
+//            }
             parserSemantic = new ParserSemantic(tokens, caminhoArquivo);
             parserSemantic.start();
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-
+        }
+        catch (RuntimeException e) {
+            System.out.println(e.getMessage() + " FAVOR CORRIGIR CÓDIGO-FONTE.");
         } catch (Exception e) {
             System.err.println("Erro ao ler o arquivo: " + e.getMessage());
         } finally {
             if(parserSemantic != null){
-                parserSemantic.printErrors();
-                System.out.println("TABLE: ");
-                parserSemantic.printTable();
+                //  System.out.println("SINTATICO: ");
+                //   parserSemantic.printSintaticErrors();
+                parserSemantic.printErrorsSemantic();
+                //    System.out.println("TABLE: ");
+                //    parserSemantic.printTable();
             }
 
         }
