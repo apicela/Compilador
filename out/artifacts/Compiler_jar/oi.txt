@@ -1,4 +1,5 @@
 start
  int kkkk;
- kkkk = 4 + 3 * 2 ;
+ kkkk = 2 ;
+ kkkk = -kkkk;
  exit
