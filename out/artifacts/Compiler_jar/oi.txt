@@ -1,4 +1,7 @@
 start
- int kkkk;
- kkkk = 4 + 3 * 2 ;
+ int kkkk, a, b;
+ if (a>b) then
+ kkkk = 4+3.2;
+ end;
+
  exit
