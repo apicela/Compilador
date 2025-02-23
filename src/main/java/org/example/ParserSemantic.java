@@ -17,7 +17,7 @@ public class ParserSemantic {
     private MathOperation mathOperation;
     private String factorAtual;
     private String currentTypeOfExpression;
-    private Queue<MathOperation> mathStack = new LinkedList<>();
+    private Stack<MathOperation> mathStack = new Stack<>();
     public ParserSemantic(List<Token> tokens, String fileName) throws IOException {
         this.tokens = tokens;
         this.writer = new FileWriter(fileName, true);
@@ -179,10 +179,26 @@ public class ParserSemantic {
             throw new RuntimeException("Erro de sintaxe: esperado 'EQUALS', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
         }
         simpleExpr();
+        MathOperation mathOpTemp = null;
+        while (!mathStack.isEmpty()) {
+            MathOperation currMathStack = mathStack.pop();
+            if(currMathStack.value2 == null){
+                currMathStack.value2 = mathOpTemp.result;
+            }
+            currMathStack.calculeResult();
+            mathOpTemp = currMathStack;
+        }
+        assignVariable(currentIdentifier, mathOpTemp.result);
         currentIdentifier = null;
         currentOperation = null;
     }
 
+    private void assignVariable(String currentIdentifier, String result) {
+        FinalToken currentFinalToken = symbolsTable.get(currentIdentifier);
+        if(currentFinalToken.getType().equals("int")) currentFinalToken.setValue(String.valueOf(Math.ceil(Double.parseDouble(result))));
+        currentFinalToken.setValue(result);
+        symbolsTable.put(currentIdentifier, currentFinalToken);
+    }
 
 
     private void ifStmt() {
@@ -258,19 +274,17 @@ public class ParserSemantic {
         term(); // preenche factor atual
         simpleExprPrime();
         mathOperation = null;
-        while (!mathStack.isEmpty()) {
-            System.out.println(mathStack.poll().toString());
-        }
     }
 
     private void simpleExprPrime() {
         if (match(TokenType.ADDOP)) {
-            System.out.println("ADDOP");
-            if(mathOperation != null) {
-                MathOperation mathOperation2 = new MathOperation();
-                mathOperation.value2 = mathOperation2.result;
-                mathOperation2.operation = previous().getLexeme();
-                mathOperation2.value1 = factorAtual;
+            if(!mathStack.isEmpty()) {
+                MathOperation stackPeek = mathStack.pop();
+                mathOperation = new MathOperation();
+                stackPeek.value2 = mathOperation.result; //result do novo mathOp
+                mathStack.add(stackPeek);
+                mathOperation.operation = previous().getLexeme();
+                mathOperation.value1 = factorAtual;
             } else mathOperation = new MathOperation(previous().getLexeme(), factorAtual, null);
             term();
             simpleExprPrime();
@@ -284,12 +298,13 @@ public class ParserSemantic {
 
     private void termPrime() {
         if (match(TokenType.MULOP)) {
-            if(mathOperation != null) {
-                MathOperation mathOperation2 = new MathOperation();
-                mathOperation.value2 = mathOperation2.result;
-                mathOperation.result = null;
-                mathOperation2.operation = previous().getLexeme();
-                mathOperation2.value1 = factorAtual;
+            if(!mathStack.isEmpty()) {
+                MathOperation stackPeek = mathStack.pop();
+                 mathOperation = new MathOperation();
+                stackPeek.value2 = mathOperation.result; //result do novo mathOp
+                mathStack.add(stackPeek);
+                mathOperation.operation = previous().getLexeme();
+                mathOperation.value1 = factorAtual;
             } else mathOperation = new MathOperation(previous().getLexeme(), factorAtual, null);
             factorA();
             termPrime();
@@ -342,8 +357,6 @@ public class ParserSemantic {
 //        }
         mathOperation.expressionType = currentTypeOfExpression;
         mathOperation.value2 = factorAtual;
-        mathOperation.calculeResult();
-        System.out.println("Math op added: " + mathOperation);
         var mathOp = new MathOperation(); // nao é temporario
         mathOp.operation = mathOperation.operation;
         mathOp.value1 = mathOperation.value1;
@@ -423,7 +436,7 @@ public class ParserSemantic {
                 if(!this.expressionType.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) + Float.valueOf(this.value2));
                 else this.result = this.value1 + this.value2;
             } else if(this.operation.equals("*")){
-                if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) + Float.valueOf(this.value2));
+                if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) * Float.valueOf(this.value2));
                 else this.result = this.value1 + this.value2;
             } else if(this.operation.equals("%")){
                 try{
