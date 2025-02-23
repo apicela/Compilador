@@ -117,7 +117,6 @@ public class ParserSemantic {
 
     private void putAndVerifyDuplicated(){
         Token readedToken = previous();
-        System.out.println("VERIFICAR DUPLICIDADE: " + readedToken);
         if(symbolsTable.get(readedToken.getLexeme()) == null){ // se nao existe na tabela, adiciona
             symbolsTable.put(readedToken.getLexeme(), new FinalToken(currentDeclarationType, readedToken.getLexeme()));
         } else{
@@ -243,7 +242,7 @@ public class ParserSemantic {
 
     private void writeStmt() {
         if(!match(TokenType.OPEN_ROUND)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
+            semanticParserErrors.add("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + " . Erro ignorado e iremos continuar");
         }
         writable();
         if(!match(TokenType.CLOSE_ROUND)){
@@ -309,10 +308,8 @@ public class ParserSemantic {
             mathStack.add(stackPeek);
             mathOperation.operation = previous().getLexeme();
             mathOperation.value1 = factorAtual;
-            System.out.println(" mathOperation.value1 " +  mathOperation.value1);
             mathOperation.opLine = previous().getLine();
         } else mathOperation = new MathOperation(previous().getLexeme(), factorAtual, null, peek().getLine());
-        System.out.println(" factorAtual : "  + factorAtual);
     }
 
     private void term() {

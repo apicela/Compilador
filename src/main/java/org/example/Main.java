@@ -25,9 +25,6 @@ public class Main {
             }
             parserSemantic = new ParserSemantic(tokens, caminhoArquivo);
             parserSemantic.start();
-            System.out.println("TABLE: ");
-            parserSemantic.printTable();
-
         } catch (RuntimeException e) {
             e.printStackTrace();
 
@@ -36,6 +33,7 @@ public class Main {
         } finally {
             if(parserSemantic != null){
                 parserSemantic.printErrors();
+                System.out.println("TABLE: ");
                 parserSemantic.printTable();
             }
 
