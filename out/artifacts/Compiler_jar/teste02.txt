@@ -1,4 +1,15 @@
 start
-    int a;
-    if a>b then a=b; b=a; end if a>b then a=a; end
+ float a;
+ int b, result;
+ float a,x,total;
+ a = 2.0;
+ x = 2.1;
+ scan (b);
+ scan (y);
+ print ( {Resultado: } );
+ print (result);
+ print ({Total: });
+ total = y / x;
+ print ({Total: };
+ print (total);
 exit

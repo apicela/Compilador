@@ -125,10 +125,14 @@ public class Parser {
             whileStmt();
         } else if (match(TokenType.SCAN)) {
             readStmt();
-            match(TokenType.SEMICOLON);
+            if(!match(TokenType.SEMICOLON)){
+                throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType());
+            }
         } else if (match(TokenType.PRINT)) {
             writeStmt();
-            match(TokenType.SEMICOLON);
+            if(!match(TokenType.SEMICOLON)){
+                throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType());
+            }
         } else {
             if(obrigatorio==1){
                 throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER' ou 'IF' ou 'DO' ou 'SCAN' ou 'PRINT', mas encontrado " + peek().getType());
@@ -180,18 +184,29 @@ public class Parser {
     }
 
     private void readStmt() {
-        match(TokenType.OPEN_ROUND);
-        identifier();
-        match(TokenType.CLOSE_ROUND);
+        if(!match(TokenType.OPEN_ROUND)){
+            throw new RuntimeException("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType());
+        }
+        if(!identifier()){
+            throw new RuntimeException("Erro de sintaxe: esperado 'identifier', mas encontrado " + peek().getType());
+        }
+        if(!match(TokenType.CLOSE_ROUND)){
+            throw new RuntimeException("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType());
+        }
     }
 
     private void writeStmt() {
-        match(TokenType.OPEN_ROUND);
+        if(!match(TokenType.OPEN_ROUND)){
+            throw new RuntimeException("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType());
+        }
         writable();
-        match(TokenType.CLOSE_ROUND);
+        if(!match(TokenType.CLOSE_ROUND)){
+            throw new RuntimeException("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType());
+        }
     }
 
     private void writable() {
+        //se der errado aqui vai dar errado falando que esperava  identifier| CONSTANT | OPEN_ROUND, mas na verdade deveria falar que espera muito mais coisa
         if (check(TokenType.LITERAL)) {
             match(TokenType.LITERAL);
         } else {
@@ -247,7 +262,7 @@ public class Parser {
                 throw new RuntimeException("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType());
             }
         } else {
-            throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER' ou 'CONSTANT_INTEGER' ou 'LITERAL' ou 'OPEN_ROUND', mas encontrado " + peek().getType());
+            throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER' ou 'CONSTANT_INTEGER' ou 'LITERAL' ou 'OPEN_ROUND', mas encontrado " + peek().getType() + " na linha " + peek().getLine());
         }
 
     }
