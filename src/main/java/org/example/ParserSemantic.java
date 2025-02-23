@@ -183,7 +183,6 @@ public class ParserSemantic {
         MathOperation mathOpTemp = null;
         while (!mathStack.isEmpty()) {
             MathOperation currMathStack = mathStack.pop();
-            System.out.println("currMathStack: " + currMathStack);
             if(currMathStack.value2 == null){
                 currMathStack.value2 = mathOpTemp.result;
             }
@@ -268,7 +267,6 @@ public class ParserSemantic {
         MathOperation mathOpTemp = null;
         while (!mathStack.isEmpty()) {
             MathOperation currMathStack = mathStack.pop();
-            System.out.println("currMathStack: " + currMathStack);
             if(currMathStack.value2 == null){
                 currMathStack.value2 = mathOpTemp.result;
             }
@@ -402,7 +400,6 @@ public class ParserSemantic {
         mathOp.value2 = mathOperation.value2;
         mathOp.expressionType = mathOperation.expressionType;
         mathOp.opLine = mathOperation.opLine;
-        System.out.println("Math operation added: " + mathOp);
         mathStack.add(mathOp);
     }
 
