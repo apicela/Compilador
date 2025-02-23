@@ -262,6 +262,7 @@ public class ParserSemantic {
     }
 
     private void condition() {
+        currentOperation = "expression";
         expression();
     }
 
@@ -340,6 +341,7 @@ public class ParserSemantic {
                 doMathOperation(mathOperation);
             }
             if(currentOperation.equals("assign")) verifyAssignment(readedToken);
+            else if(currentOperation.equals("expression")) verifyCondition(readedToken);
         } else if (match(TokenType.OPEN_ROUND)) {
             expression();
             if(!match(TokenType.CLOSE_ROUND)){
@@ -352,6 +354,24 @@ public class ParserSemantic {
 
     }
 
+    private void verifyCondition(Token readedToken) {
+        FinalToken currentFinalToken = symbolsTable.get(currentIdentifier);
+        if(currentFinalToken == null){
+            semanticParserErrors.add("ERRO: Está utilizando uma variável inexistente. Linha: " + readedToken.getLine());
+            return;
+        }
+
+
+        if(mathOperation != null){
+            currentFinalToken.setValue(mathOperation.value1);
+        } else {
+            if(readedToken.getType() == TokenType.IDENTIFIER) currentFinalToken.setValue(symbolsTable.get(readedToken.getLexeme()).getValue());
+            else currentFinalToken.setValue(readedToken.getLexeme());
+        }
+        if(currentFinalToken.getType().equals("int")) currentFinalToken.setValue(String.valueOf(Math.ceil(Double.parseDouble(currentFinalToken.getValue()))));
+        symbolsTable.put(currentIdentifier, currentFinalToken);
+    }
+
     void doMathOperation(MathOperation mathOperation){
         mathOperation.expressionType = currentTypeOfExpression;
         mathOperation.value2 = factorAtual;
@@ -361,6 +381,7 @@ public class ParserSemantic {
         mathOp.value2 = mathOperation.value2;
         mathOp.expressionType = mathOperation.expressionType;
         mathOp.opLine = mathOperation.opLine;
+        System.out.println("Math operation added: " + mathOp);
         mathStack.add(mathOp);
     }
 

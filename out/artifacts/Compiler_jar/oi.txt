@@ -1,5 +1,9 @@
 start
- int kkkk;
- kkkk = 2 ;
- kkkk = -kkkk;
+ int kkkk, a,b;
+ a = 1;
+ b = 2;
+ //if (a>b) then
+// kkkk = 3;
+// end;
+ kkkk = a +b;
  exit
