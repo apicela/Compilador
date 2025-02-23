@@ -162,7 +162,8 @@ public class Lexer {
             do {
                 sb.append(ch);
                 readch();
-            } while (ch != ';' && ch != '\n' && ch != ' ' && ch != ',' && ch != '(' && ch != ')' && ch != '+' && ch != '-' && ch != '&' && ch != '/' && ch != '%');
+            } while (ch != ';' && ch != '\n' && ch != ' ' && ch != ',' && ch != '(' && ch != ')' && ch != '+' && ch != '-' && ch != '&' && ch != '/' && ch != '%' && ch != '>' && ch != '<'&& ch != '=');
+            System.out.println("sb: " + sb + " sb length: " + sb.length());
             boolean isFloat = FLOAT.matcher(sb.toString()).matches();
             boolean isInteger = INTEGER.matcher(sb.toString()).matches();
             if (isFloat) return new Token(TokenType.CONSTANT_FLOAT, sb.toString(), line);
@@ -237,6 +238,7 @@ public class Lexer {
     }
 
     private Token unexpectedToken(String lexeme) {
+        System.out.println("TOKEN UNEXPECTED CRIADO: " + lexeme);
         if (lexeme.equals(" ") || lexeme.equals("\t") || lexeme.equals("\r") || lexeme.equals("\b") || lexeme.equals("\n") || lexeme.equals("\u0000"))
             return null;
         return new Token(TokenType.UNEXPECTED, lexeme, line);

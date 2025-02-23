@@ -1,9 +1,7 @@
 package org.example;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.*;
 
 public class ParserSemantic {
@@ -181,7 +179,7 @@ public class ParserSemantic {
         }
         simpleExpr();
         MathOperation mathOpTemp = null;
-        while (!mathStack.isEmpty()) {
+        while (!mathStack.isEmpty() && mathOpTemp != null) {
             MathOperation currMathStack = mathStack.pop();
             if(currMathStack.value2 == null){
                 currMathStack.value2 = mathOpTemp.result;
@@ -265,7 +263,7 @@ public class ParserSemantic {
         currentTypeOfExpression = "boolean";
         expression();
         MathOperation mathOpTemp = null;
-        while (!mathStack.isEmpty()) {
+        while (!mathStack.isEmpty() && mathOpTemp != null) {
             MathOperation currMathStack = mathStack.pop();
             if(currMathStack.value2 == null){
                 currMathStack.value2 = mathOpTemp.result;
@@ -273,7 +271,6 @@ public class ParserSemantic {
             currMathStack.calculeResult();
             mathOpTemp = currMathStack;
         }
-        if(mathOpTemp != null) verifyCondition(mathOpTemp);
         currentIdentifier = null;
         currentOperation = null;
 
@@ -331,10 +328,8 @@ public class ParserSemantic {
     private void factorA() {
         if (match(TokenType.NOT, TokenType.ADDOP)) {
             if(previous().getLexeme().equals("+")){
-
-                semanticParserErrors.add("O operador '+' não é aplicavel em " + peek().getType()+ " na linha " +  peek().getLine() );
+                semanticParserErrors.add("O operador '+' não é aplicavel em " + previous().getType()+ " na linha " +  previous().getLine() );
             }else if(previous().getLexeme().equals("-")){
-
                 Token t = peek();
                 if(t.getType()==TokenType.CONSTANT_INTEGER || t.getType()==TokenType.CONSTANT_FLOAT){
                     t.setLexeme("-" + t.getLexeme());
@@ -367,14 +362,15 @@ public class ParserSemantic {
     private void factor()  {
         if (match(TokenType.IDENTIFIER, TokenType.CONSTANT_INTEGER, TokenType.CONSTANT_FLOAT, TokenType.LITERAL)) {
             Token readedToken = previous(); // pega o token
-            if(readedToken.getType() == TokenType.IDENTIFIER)
-                factorAtual = String.valueOf(symbolsTable.getOrDefault(readedToken.getLexeme(), null).getValue()); // se for variavel pega o valor dela
+            if(readedToken.getType() == TokenType.IDENTIFIER){
+                FinalToken t = symbolsTable.getOrDefault(readedToken.getLexeme(), null);
+                if(t != null) factorAtual =  String.valueOf(t.getValue());
+                else factorAtual = null;
+            }
              else factorAtual = readedToken.getLexeme();
             if(mathOperation != null){
                 doMathOperation(mathOperation);
             }
-            if(currentOperation.equals("assign")) verifyAssignment(readedToken);
-        //    else if(currentOperation.equals("expression")) verifyCondition(readedToken);
         } else if (match(TokenType.OPEN_ROUND)) {
             expression();
             if(!match(TokenType.CLOSE_ROUND)){
@@ -387,9 +383,16 @@ public class ParserSemantic {
 
     }
 
-    private void verifyCondition(MathOperation mathOperation) {
-        System.out.println("mathOperation " + mathOperation);
+    private void verifyCondition(Token readedToken) {
+        FinalToken currentFinalToken = symbolsTable.get(currentIdentifier);
+        if(currentFinalToken == null){
+            semanticParserErrors.add("ERRO: Está utilizando uma variável inexistente. Linha: " + readedToken.getLine());
+            return;
+        }
     }
+
+
+
 
     void doMathOperation(MathOperation mathOperation){
         mathOperation.expressionType = currentTypeOfExpression;
@@ -427,6 +430,7 @@ public class ParserSemantic {
             if(readedToken.getType() == TokenType.IDENTIFIER) currentFinalToken.setValue(symbolsTable.get(readedToken.getLexeme()).getValue());
             else currentFinalToken.setValue(readedToken.getLexeme());
         }
+        System.out.println(readedToken.getLine() + " currId: " + currentIdentifier + " currFT: " + currentFinalToken);
         if(currentFinalToken.getType().equals("int")) currentFinalToken.setValue(String.valueOf(Math.ceil(Double.parseDouble(currentFinalToken.getValue()))));
         symbolsTable.put(currentIdentifier, currentFinalToken);
     }
