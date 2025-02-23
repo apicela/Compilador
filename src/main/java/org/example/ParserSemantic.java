@@ -314,6 +314,16 @@ public class ParserSemantic {
 
     private void factorA() {
         if (match(TokenType.NOT, TokenType.ADDOP)) {
+            if(previous().getLexeme().equals("+")){
+                semanticParserErrors.add("O operador '+' não é aplicavel em " + peek().getType()+ " na linha " +  peek().getLine() );
+            }else if(previous().getLexeme().equals("-")){
+                Token t = peek();
+                t.setLexeme("-" + t.getLexeme());
+
+            }else{
+                Token t = peek();
+                t.setLexeme("!" + t.getLexeme());
+            }
             factor();
         } else {
             factor();
@@ -362,12 +372,15 @@ public class ParserSemantic {
             semanticParserErrors.add("ERRO: Está utilizando uma variável inexistente. Linha: " + readedToken.getLine());
             return;
         }
-        if(readedToken.getType() == TokenType.CONSTANT_FLOAT && !currentFinalToken.getType().equals("float"))
-            semanticParserErrors.add(STR."ERRO: Não é possivel associar \{readedToken.getType()} para variável do tipo \{currentFinalToken.getType()}. Linha: \{readedToken.getLine()}");
-        else  if(readedToken.getType() == TokenType.CONSTANT_INTEGER && !currentFinalToken.getType().equals("int"))
-            semanticParserErrors.add(STR."ERRO: Não é possivel associar \{readedToken.getType()} para variável do tipo \{currentFinalToken.getType()}. Linha: \{readedToken.getLine()}");
-        else  if(readedToken.getType() == TokenType.LITERAL && !currentFinalToken.getType().equals("string"))
-            semanticParserErrors.add(STR."ERRO: Não é possivel associar \{readedToken.getType()} para variável do tipo \{currentFinalToken.getType()}. Linha: \{readedToken.getLine()}");
+        if (readedToken.getType() == TokenType.CONSTANT_FLOAT && !currentFinalToken.getType().equals("float"))
+            semanticParserErrors.add(String.format("ERRO: Não é possivel associar %s para variável do tipo %s. Linha: %d",
+                    readedToken.getType(), currentFinalToken.getType(), readedToken.getLine()));
+        else if (readedToken.getType() == TokenType.CONSTANT_INTEGER && !currentFinalToken.getType().equals("int"))
+            semanticParserErrors.add(String.format("ERRO: Não é possivel associar %s para variável do tipo %s. Linha: %d",
+                    readedToken.getType(), currentFinalToken.getType(), readedToken.getLine()));
+        else if (readedToken.getType() == TokenType.LITERAL && !currentFinalToken.getType().equals("string"))
+            semanticParserErrors.add(String.format("ERRO: Não é possivel associar %s para variável do tipo %s. Linha: %d",
+                    readedToken.getType(), currentFinalToken.getType(), readedToken.getLine()));
 
         if(mathOperation != null){
             currentFinalToken.setValue(mathOperation.value1);

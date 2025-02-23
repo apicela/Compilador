@@ -1,7 +1,5 @@
 start
- int kkkk, a, b;
- if (a>b) then
- kkkk = 4+3.2;
- end;
-
+ int kkkk;
+ kkkk = 2 ;
+ kkkk = -kkkk;
  exit
