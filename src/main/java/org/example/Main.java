@@ -16,7 +16,7 @@ public class Main {
         ParserSemantic parserSemantic = null;
         // O nome do arquivo é o primeiro argumento passado
         //  String caminhoArquivo = args[0];
-        String caminhoArquivo = "out\\artifacts\\Compiler_jar\\file.txt";
+        String caminhoArquivo = "out\\artifacts\\Compiler_jar\\teste01.txt";
         try {
             Lexer lexer = new Lexer(caminhoArquivo);
             List<Token> tokens = lexer.processTokens();

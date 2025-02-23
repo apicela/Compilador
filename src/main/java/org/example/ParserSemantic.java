@@ -197,7 +197,9 @@ public class ParserSemantic {
 
     private void assignVariable(String currentIdentifier, String result) {
         FinalToken currentFinalToken = symbolsTable.get(currentIdentifier);
-        if(currentFinalToken.getType().equals("int")) currentFinalToken.setValue(String.valueOf(Math.ceil(Double.parseDouble(result))));
+        if(currentFinalToken.getType().equals("int")){
+            if(result != null) currentFinalToken.setValue(String.valueOf(Math.ceil(Double.parseDouble(result))));
+        }
         currentFinalToken.setValue(result);
         symbolsTable.put(currentIdentifier, currentFinalToken);
     }
@@ -510,11 +512,11 @@ public class ParserSemantic {
                 try{
                     this.result = String.valueOf(Integer.parseInt(this.value1) % Integer.parseInt(this.value2));
                 } catch(NumberFormatException e){
-                    this.result = "null";
+                    semanticParserErrors.add("ERRO Semantico: O operador %, requer que ambos operandos sejam inteiros. Linha: " + this.opLine);
                 }
             }
-            } catch(NumberFormatException e){
-                semanticParserErrors.add("ERRO Semantico: O operador %, requer que ambos operandos sejam inteiros. Linha: " + this.opLine);
+            } catch(Exception e){
+                this.result = null;
             }
         }
 
