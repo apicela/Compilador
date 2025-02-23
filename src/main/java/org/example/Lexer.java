@@ -163,7 +163,6 @@ public class Lexer {
                 sb.append(ch);
                 readch();
             } while (ch != ';' && ch != '\n' && ch != ' ' && ch != ',' && ch != '(' && ch != ')' && ch != '+' && ch != '-' && ch != '&' && ch != '/' && ch != '%' && ch != '>' && ch != '<'&& ch != '=');
-            System.out.println("sb: " + sb + " sb length: " + sb.length());
             boolean isFloat = FLOAT.matcher(sb.toString()).matches();
             boolean isInteger = INTEGER.matcher(sb.toString()).matches();
             if (isFloat) return new Token(TokenType.CONSTANT_FLOAT, sb.toString(), line);
@@ -183,7 +182,10 @@ public class Lexer {
             }
             String s = sb.toString();
             Token w = symbolsTable.get(s);
-            if (w != null) return w.setLine(line); //palavra já existe na HashTable
+            if (w != null) {
+                Token newToken = new Token(w.getType(), w.getLexeme(), line);
+                return newToken;
+            }
             w = new Token(TokenType.IDENTIFIER, s, line);
             symbolsTable.put(s, w);
             return w;
@@ -194,7 +196,7 @@ public class Lexer {
                 Character.toString(ch),
                 unexpectedToken(Character.toString(ch))
         );
-        remainingCharacter.setLine(line);
+        if(remainingCharacter != null) remainingCharacter = new Token(remainingCharacter.getType(), remainingCharacter.getLexeme(), line);
         ch = ' ';
         return remainingCharacter;
     }
@@ -238,7 +240,6 @@ public class Lexer {
     }
 
     private Token unexpectedToken(String lexeme) {
-        System.out.println("TOKEN UNEXPECTED CRIADO: " + lexeme);
         if (lexeme.equals(" ") || lexeme.equals("\t") || lexeme.equals("\r") || lexeme.equals("\b") || lexeme.equals("\n") || lexeme.equals("\u0000"))
             return null;
         return new Token(TokenType.UNEXPECTED, lexeme, line);

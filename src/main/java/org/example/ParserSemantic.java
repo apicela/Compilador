@@ -68,12 +68,12 @@ public class ParserSemantic {
 
     private void program() {
         if(!match(TokenType.START)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'START', mas encontrado " + peek().getType() + " na linha " +  peek().getLine() );
+           semanticParserErrors.add("Erro de sintaxe: esperado 'START', mas encontrado " + peek().getType() + " na linha " +  peek().getLine() + ". O código-fonte foi corrigido e adicionado START ");
         }
         declList();
         stmtList();
         if(!match(TokenType.EXIT)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'EXIT', mas encontrado " + peek().getType() + " na linha " +  peek().getLine() );
+            semanticParserErrors.add("Erro de sintaxe: esperado 'EXIT', mas encontrado " + peek().getType() + " na linha " +  peek().getLine() + ". O código-fonte foi corrigido e adicionado EXIT ");
         }
     }
 
@@ -117,9 +117,12 @@ public class ParserSemantic {
 
     private void putAndVerifyDuplicated(){
         Token readedToken = previous();
+        System.out.println("VERIFICAR DUPLICIDADE: " + readedToken);
         if(symbolsTable.get(readedToken.getLexeme()) == null){ // se nao existe na tabela, adiciona
             symbolsTable.put(readedToken.getLexeme(), new FinalToken(currentDeclarationType, readedToken.getLexeme()));
-        } else semanticParserErrors.add("ERRO: Está ferindo as regras de unicidade de nossa linguagem. Linha: " + readedToken.getLine());
+        } else{
+            semanticParserErrors.add("ERRO: Está ferindo as regras de unicidade de nossa linguagem. Linha: " + readedToken.getLine());
+        }
     }
 
     private boolean identifier() {
@@ -378,7 +381,7 @@ public class ParserSemantic {
                 semanticParserErrors.add("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
             }
         } else {
-            throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER' ou 'CONSTANT_INTEGER' ou 'LITERAL' ou 'OPEN_ROUND', mas encontrado " + peek().getType() + " na linha " + peek().getLine());
+            semanticParserErrors.add("Erro de sintaxe: esperado 'IDENTIFIER' ou 'CONSTANT_INTEGER' ou 'LITERAL' ou 'OPEN_ROUND', mas encontrado " + peek().getType() + " na linha " + peek().getLine());
         }
 
     }
@@ -437,8 +440,8 @@ public class ParserSemantic {
 
     void writeAndFlush(String str)  {
         try{
-            writer.write(str);
-            writer.flush();
+//            writer.write(str);
+//            writer.flush();
         } catch (Exception e){
             throw new RuntimeException(e.getMessage());
         }

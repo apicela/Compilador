@@ -16,7 +16,7 @@ public class Main {
         ParserSemantic parserSemantic = null;
         // O nome do arquivo é o primeiro argumento passado
         //  String caminhoArquivo = args[0];
-        String caminhoArquivo = "out\\artifacts\\Compiler_jar\\xd.txt";
+        String caminhoArquivo = "out\\artifacts\\Compiler_jar\\file.txt";
         try {
             Lexer lexer = new Lexer(caminhoArquivo);
             List<Token> tokens = lexer.processTokens();
@@ -34,7 +34,11 @@ public class Main {
         } catch (Exception e) {
             System.err.println("Erro ao ler o arquivo: " + e.getMessage());
         } finally {
-            if(parserSemantic != null) parserSemantic.printErrors();
+            if(parserSemantic != null){
+                parserSemantic.printErrors();
+                parserSemantic.printTable();
+            }
+
         }
     }
 }
