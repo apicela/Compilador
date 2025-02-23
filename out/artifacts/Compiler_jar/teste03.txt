@@ -16,4 +16,4 @@ int pontuacao, pontuacaoMaxina, disponibilidade;
  out({Candidato reprovado})
  end
  while (pontuação >= 0)end
-exit
+exit*/
