@@ -25,10 +25,12 @@ public class Main {
             }
             parserSemantic = new ParserSemantic(tokens, caminhoArquivo);
             parserSemantic.start();
+            System.out.println("TABLE: ");
             parserSemantic.printTable();
 
         } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
+
         } catch (Exception e) {
             System.err.println("Erro ao ler o arquivo: " + e.getMessage());
         } finally {

@@ -89,7 +89,6 @@ public class ParserSemantic {
             return false; //ou seja nao conseguiu formar um decl
         }
         currentDeclarationType = previous().getLexeme();
-        System.out.println(currentDeclarationType);
         identList();
         if(!match(TokenType.SEMICOLON)){
             writeAndFlush(";");
@@ -263,6 +262,7 @@ public class ParserSemantic {
 
     private void simpleExprPrime() {
         if (match(TokenType.ADDOP)) {
+            System.out.println("ADDOP");
             if(mathOperation != null) {
                 mathOperation.operation = previous().getLexeme();
             } else mathOperation = new MathOperation(previous().getLexeme(), factorAtual);
@@ -278,7 +278,10 @@ public class ParserSemantic {
 
     private void termPrime() {
         if (match(TokenType.MULOP)) {
-            mathOperation = new MathOperation(previous().getLexeme(), factorAtual);
+            System.out.println("MULOP");
+            if(mathOperation != null) {
+                mathOperation.operation = previous().getLexeme();
+            } else mathOperation = new MathOperation(previous().getLexeme(), factorAtual);
             factorA();
             termPrime();
         }
@@ -315,11 +318,13 @@ public class ParserSemantic {
     }
 
     void doMathOperation(MathOperation mathOperation){
-        System.out.println("doMathOperation");
+        System.out.println("Operacao matematica: value1: " + mathOperation.value + " value2: " + factorAtual + " op: " + mathOperation.operation);
         if(mathOperation.operation.equals("+")){
-            if(currentTypeOfExpression.equals("float")) mathOperation.value = String.valueOf(Float.valueOf(mathOperation.getValue()) + Float.valueOf(factorAtual));
-            else if(currentTypeOfExpression.equals("int")) mathOperation.value = String.valueOf(Integer.valueOf(mathOperation.getValue()) + Integer.valueOf(factorAtual));
-            System.out.println("mathOperation.getValue(): " + mathOperation.getValue());
+            if(!currentTypeOfExpression.equals("string")) mathOperation.value = String.valueOf(Float.valueOf(mathOperation.getValue()) + Float.valueOf(factorAtual));
+            else mathOperation.value += factorAtual;
+        } else if(mathOperation.operation.equals("*")){
+            if(!currentTypeOfExpression.equals("string")) mathOperation.value = String.valueOf(Float.valueOf(mathOperation.getValue()) * Float.valueOf(factorAtual));
+            else mathOperation.value += factorAtual;
         }
     }
 
@@ -341,6 +346,7 @@ public class ParserSemantic {
         } else {
             currentFinalToken.setValue(readedToken.getLexeme());
         }
+        if(currentFinalToken.getType().equals("int")) currentFinalToken.setValue(String.valueOf(Math.ceil(Double.parseDouble(currentFinalToken.getValue()))));
         symbolsTable.put(currentIdentifier, currentFinalToken);
     }
 
