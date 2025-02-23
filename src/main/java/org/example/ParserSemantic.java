@@ -333,14 +333,32 @@ public class ParserSemantic {
     private void factorA() {
         if (match(TokenType.NOT, TokenType.ADDOP)) {
             if(previous().getLexeme().equals("+")){
+
                 semanticParserErrors.add("O operador '+' não é aplicavel em " + peek().getType()+ " na linha " +  peek().getLine() );
             }else if(previous().getLexeme().equals("-")){
-                Token t = peek();
-                t.setLexeme("-" + t.getLexeme());
 
-            }else{
                 Token t = peek();
-                t.setLexeme("!" + t.getLexeme());
+                if(t.getType()==TokenType.CONSTANT_INTEGER || t.getType()==TokenType.CONSTANT_FLOAT){
+                    t.setLexeme("-" + t.getLexeme());
+
+                }else if(t.getType()==TokenType.LITERAL){
+                    semanticParserErrors.add("O operador '-' não é aplicavel em " + peek().getType()+ " na linha " +  peek().getLine() ); //nao se pode fazer -{aaaa}
+
+
+                }else if (t.getType()==TokenType.IDENTIFIER) {
+                    FinalToken t1 = symbolsTable.get(t.getLexeme());
+                    if(t1 == null) {
+                        semanticParserErrors.add("O identificador " + peek().getLexeme() + " na linha " + peek().getLine() + " nao existe"); //nao se pode fazer -a se a nao existir
+                    }else{ //se o literal realmente existe precisamos inverter o valor
+                        t1.setValue("-" + (t1.getValue()));
+                        symbolsTable.put(t.getLexeme(), t1);
+
+                    }
+                }
+
+            }else if (previous().getLexeme().equals("!")) {
+                //todo
+
             }
             factor();
         } else {
