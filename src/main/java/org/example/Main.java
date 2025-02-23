@@ -23,7 +23,7 @@ public class Main {
             for (Token t : tokens) {
                 System.out.println(t);
             }
-            Parser parser = new Parser(tokens);
+            Parser parser = new Parser(tokens, caminhoArquivo);
             parser.start();
 
         } catch (RuntimeException e) {

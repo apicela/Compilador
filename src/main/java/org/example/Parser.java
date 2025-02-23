@@ -1,4 +1,6 @@
 package org.example;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -6,9 +8,11 @@ public class Parser {
     private final List<Token> tokens;
     private int current = 0;
     private final List<String> parserErrors = new ArrayList<String>();
+    private final FileWriter writer;
 
-    public Parser(List<Token> tokens) {
+    public Parser(List<Token> tokens, String fileName) throws IOException {
         this.tokens = tokens;
+        this.writer = new FileWriter(fileName, true);
     }
 
     private Token lookahead() {
@@ -79,6 +83,7 @@ public class Parser {
 
         identList();
         if(!match(TokenType.SEMICOLON)){
+            writeAndFlush(";");
             throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType());
         }
         return true;
@@ -117,6 +122,7 @@ public class Parser {
         if (check(TokenType.IDENTIFIER)) {
             assignStmt();
             if(!match(TokenType.SEMICOLON)){
+                writeAndFlush(";");
                 throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType());
             }
         } else if (match(TokenType.IF)) {
@@ -126,11 +132,13 @@ public class Parser {
         } else if (match(TokenType.SCAN)) {
             readStmt();
             if(!match(TokenType.SEMICOLON)){
+                writeAndFlush(";");
                 throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType());
             }
         } else if (match(TokenType.PRINT)) {
             writeStmt();
             if(!match(TokenType.SEMICOLON)){
+                writeAndFlush(";");
                 throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType());
             }
         } else {
@@ -191,6 +199,7 @@ public class Parser {
             throw new RuntimeException("Erro de sintaxe: esperado 'identifier', mas encontrado " + peek().getType());
         }
         if(!match(TokenType.CLOSE_ROUND)){
+            writeAndFlush(")");
             throw new RuntimeException("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType());
         }
     }
@@ -201,6 +210,7 @@ public class Parser {
         }
         writable();
         if(!match(TokenType.CLOSE_ROUND)){
+            writeAndFlush(")");
             throw new RuntimeException("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType());
         }
     }
@@ -253,12 +263,13 @@ public class Parser {
         }
     }
 
-    private void factor() {
+    private void factor()  {
         if (match(TokenType.IDENTIFIER, TokenType.CONSTANT_INTEGER, TokenType.CONSTANT_FLOAT, TokenType.LITERAL)) {
 
         } else if (match(TokenType.OPEN_ROUND)) {
             expression();
             if(!match(TokenType.CLOSE_ROUND)){
+                writeAndFlush(")");
                 throw new RuntimeException("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType());
             }
         } else {
@@ -267,4 +278,13 @@ public class Parser {
 
     }
 
+    void writeAndFlush(String str)  {
+        try{
+            writer.write(str);
+            writer.flush();
+        } catch (Exception e){
+            throw new RuntimeException(e.getMessage());
+        }
+
+    }
 }
