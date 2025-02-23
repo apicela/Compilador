@@ -69,12 +69,12 @@ public class ParserSemantic {
 
     private void program() {
         if(!match(TokenType.START)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'START', mas encontrado " + peek().getType());
+            throw new RuntimeException("Erro de sintaxe: esperado 'START', mas encontrado " + peek().getType() + " na linha " +  peek().getLine() );
         }
         declList();
         stmtList();
         if(!match(TokenType.EXIT)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'EXIT', mas encontrado " + peek().getType());
+            throw new RuntimeException("Erro de sintaxe: esperado 'EXIT', mas encontrado " + peek().getType() + " na linha " +  peek().getLine() );
         }
     }
 
@@ -92,7 +92,7 @@ public class ParserSemantic {
         identList();
         if(!match(TokenType.SEMICOLON)){
             writeAndFlush(";");
-            throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType());
+            semanticParserErrors.add("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
         }
         return true;
     }
@@ -104,12 +104,12 @@ public class ParserSemantic {
     private void identList() {
         boolean isIdentifier = identifier();
         if(!isIdentifier){
-            throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER', mas encontrado " + peek().getType());
+            throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER', mas encontrado " + peek().getType() + " na linha " + peek().getLine());
         }
         putAndVerifyDuplicated();
         while (match(TokenType.COMMA)) {
             if(!identifier()) {
-                throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER', mas encontrado " + peek().getType());
+                throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER', mas encontrado " + peek().getType() + " na linha " + peek().getLine());
             }
             putAndVerifyDuplicated();
         }
@@ -141,7 +141,7 @@ public class ParserSemantic {
             assignStmt();
             if(!match(TokenType.SEMICOLON)){
                 writeAndFlush(";");
-                throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType());
+                semanticParserErrors.add("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
             }
         } else if (match(TokenType.IF)) {
             ifStmt();
@@ -151,17 +151,17 @@ public class ParserSemantic {
             readStmt();
             if(!match(TokenType.SEMICOLON)){
                 writeAndFlush(";");
-                throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType());
+                semanticParserErrors.add("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
             }
         } else if (match(TokenType.PRINT)) {
             writeStmt();
             if(!match(TokenType.SEMICOLON)){
                 writeAndFlush(";");
-                throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType());
+                semanticParserErrors.add("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
             }
         } else {
             if(obrigatorio==1){
-                throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER' ou 'IF' ou 'DO' ou 'SCAN' ou 'PRINT', mas encontrado " + peek().getType());
+                throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER' ou 'IF' ou 'DO' ou 'SCAN' ou 'PRINT', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
             }else{
                 return false;
             }
@@ -176,7 +176,7 @@ public class ParserSemantic {
         currentIdentifier = previous().getLexeme();
         currentTypeOfExpression = symbolsTable.get(currentIdentifier) != null ? symbolsTable.get(currentIdentifier).getType() : "";
         if(!match(TokenType.EQUALS)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'EQUALS', mas encontrado " + peek().getType());
+            throw new RuntimeException("Erro de sintaxe: esperado 'EQUALS', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
         }
         simpleExpr();
         currentIdentifier = null;
@@ -188,14 +188,14 @@ public class ParserSemantic {
     private void ifStmt() {
         condition();
         if(!match(TokenType.THEN)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'THEN', mas encontrado " + peek().getType());
+            throw new RuntimeException("Erro de sintaxe: esperado 'THEN', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
         }
         stmtList();
         if (match(TokenType.ELSE)) {
             stmtList();
         }
         if(!match(TokenType.END)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'END', mas encontrado " + peek().getType());
+            throw new RuntimeException("Erro de sintaxe: esperado 'END', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
         }
     }
 
@@ -212,25 +212,25 @@ public class ParserSemantic {
 
     private void readStmt() {
         if(!match(TokenType.OPEN_ROUND)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType());
+            throw new RuntimeException("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
         }
         if(!identifier()){
-            throw new RuntimeException("Erro de sintaxe: esperado 'identifier', mas encontrado " + peek().getType());
+            throw new RuntimeException("Erro de sintaxe: esperado 'identifier', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
         }
         if(!match(TokenType.CLOSE_ROUND)){
             writeAndFlush(")");
-            throw new RuntimeException("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType());
+            semanticParserErrors.add("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
         }
     }
 
     private void writeStmt() {
         if(!match(TokenType.OPEN_ROUND)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType()+ " na linha " + " peek().getLine ");
+            throw new RuntimeException("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
         }
         writable();
         if(!match(TokenType.CLOSE_ROUND)){
             writeAndFlush(")");
-            semanticParserErrors.add("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType());
+            semanticParserErrors.add("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
         }
     }
 
@@ -309,7 +309,7 @@ public class ParserSemantic {
             expression();
             if(!match(TokenType.CLOSE_ROUND)){
                 writeAndFlush(")");
-                throw new RuntimeException("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType());
+                semanticParserErrors.add("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
             }
         } else {
             throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER' ou 'CONSTANT_INTEGER' ou 'LITERAL' ou 'OPEN_ROUND', mas encontrado " + peek().getType() + " na linha " + peek().getLine());
