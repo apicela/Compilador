@@ -162,7 +162,7 @@ public class Lexer {
             do {
                 sb.append(ch);
                 readch();
-            } while (ch != ';' && ch != '\n' && ch != ' ' && ch != ',' && ch != '(' && ch != ')' && ch != '+' && ch != '-' && ch != '&' && ch != '/' && ch != '%' && ch != '>' && ch != '<'&& ch != '=');
+            } while (ch != ';' && ch != '\n' && ch != ' ' && ch != ',' && ch != '(' && ch != ')' && ch != '+' && ch != '-' && ch != '*' && ch != '&' && ch != '/' && ch != '%' && ch != '>' && ch != '<'&& ch != '=');
             boolean isFloat = FLOAT.matcher(sb.toString()).matches();
             boolean isInteger = INTEGER.matcher(sb.toString()).matches();
             if (isFloat) return new Token(TokenType.CONSTANT_FLOAT, sb.toString(), line);

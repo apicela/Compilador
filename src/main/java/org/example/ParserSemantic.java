@@ -103,12 +103,12 @@ public class ParserSemantic {
     private void identList() {
         boolean isIdentifier = identifier();
         if(!isIdentifier){
-            throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER', mas encontrado " + peek().getType() + " na linha " + peek().getLine());
+            throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER', mas encontrado " + peek().getType() + " na linha " + peek().getLine() + " ERRO NÃO SERÁ CORRIGIDO E ANÁLISE FINALIZOU");
         }
         putAndVerifyDuplicated();
         while (match(TokenType.COMMA)) {
             if(!identifier()) {
-                throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER', mas encontrado " + peek().getType() + " na linha " + peek().getLine());
+                throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER', mas encontrado " + peek().getType() + " na linha " + peek().getLine() + "  ERRO NÃO SERÁ CORRIGIDO E ANÁLISE FINALIZOU");
             }
             putAndVerifyDuplicated();
         }
@@ -162,7 +162,7 @@ public class ParserSemantic {
             }
         } else {
             if(obrigatorio==1){
-                throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER' ou 'IF' ou 'DO' ou 'SCAN' ou 'PRINT', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
+                throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER' ou 'IF' ou 'DO' ou 'SCAN' ou 'PRINT', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + "  ERRO NÃO SERÁ CORRIGIDO E ANÁLISE FINALIZOU");
             }else{
                 return false;
             }
@@ -177,11 +177,11 @@ public class ParserSemantic {
         currentIdentifier = previous().getLexeme();
         currentTypeOfExpression = symbolsTable.get(currentIdentifier) != null ? symbolsTable.get(currentIdentifier).getType() : "";
         if(!match(TokenType.EQUALS)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'EQUALS', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
+            throw new RuntimeException("Erro de sintaxe: esperado 'EQUALS', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + "  ERRO NÃO SERÁ CORRIGIDO E ANÁLISE FINALIZOU");
         }
         simpleExpr();
         MathOperation mathOpTemp = null;
-        while (!mathStack.isEmpty() && mathOpTemp != null) {
+        while (!mathStack.isEmpty() ) {
             MathOperation currMathStack = mathStack.pop();
             if(currMathStack.value2 == null){
                 currMathStack.value2 = mathOpTemp.result;
@@ -205,14 +205,14 @@ public class ParserSemantic {
     private void ifStmt() {
         condition();
         if(!match(TokenType.THEN)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'THEN', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
+           semanticParserErrors.add("Erro de sintaxe: esperado 'THEN', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + "  Erro ignorado e iremos continuar análise.");
         }
         stmtList();
         if (match(TokenType.ELSE)) {
             stmtList();
         }
         if(!match(TokenType.END)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'END', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
+            semanticParserErrors.add("Erro de sintaxe: esperado 'END', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + "  Erro ignorado e iremos continuar análise.");
         }
     }
 
@@ -229,10 +229,10 @@ public class ParserSemantic {
 
     private void readStmt() {
         if(!match(TokenType.OPEN_ROUND)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
+            semanticParserErrors.add("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + " . Erro ignorado e iremos continuar");
         }
         if(!identifier()){
-            throw new RuntimeException("Erro de sintaxe: esperado 'identifier', mas encontrado " + peek().getType()+ " na linha " + peek().getLine());
+            throw new RuntimeException("Erro de sintaxe: esperado 'identifier', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + ". ERRO NÃO SERÁ CORRIGIDO E ANÁLISE FINALIZOU");
         }
         if(!match(TokenType.CLOSE_ROUND)){
             writeAndFlush(")");
@@ -265,7 +265,7 @@ public class ParserSemantic {
         currentTypeOfExpression = "boolean";
         expression();
         MathOperation mathOpTemp = null;
-        while (!mathStack.isEmpty() && mathOpTemp != null) {
+        while (!mathStack.isEmpty() ) {
             MathOperation currMathStack = mathStack.pop();
             if(currMathStack.value2 == null){
                 currMathStack.value2 = mathOpTemp.result;
@@ -370,6 +370,10 @@ public class ParserSemantic {
              else factorAtual = readedToken.getLexeme();
             if(mathOperation != null){
                 doMathOperation(mathOperation);
+            } else {
+                var newMathOp = new MathOperation("+", factorAtual, "0",readedToken.getLine());
+                newMathOp.expressionType = currentTypeOfExpression;
+                mathStack.add(newMathOp);
             }
         } else if (match(TokenType.OPEN_ROUND)) {
             expression();
@@ -391,9 +395,6 @@ public class ParserSemantic {
         }
     }
 
-
-
-
     void doMathOperation(MathOperation mathOperation){
         mathOperation.expressionType = currentTypeOfExpression;
         mathOperation.value2 = factorAtual;
@@ -405,8 +406,6 @@ public class ParserSemantic {
         mathOp.opLine = mathOperation.opLine;
         mathStack.add(mathOp);
     }
-
-
 
     private void verifyAssignment(Token readedToken) {
         FinalToken currentFinalToken = symbolsTable.get(currentIdentifier);
@@ -430,7 +429,6 @@ public class ParserSemantic {
             if(readedToken.getType() == TokenType.IDENTIFIER) currentFinalToken.setValue(symbolsTable.get(readedToken.getLexeme()).getValue());
             else currentFinalToken.setValue(readedToken.getLexeme());
         }
-        System.out.println(readedToken.getLine() + " currId: " + currentIdentifier + " currFT: " + currentFinalToken);
         if(currentFinalToken.getType().equals("int")) currentFinalToken.setValue(String.valueOf(Math.ceil(Double.parseDouble(currentFinalToken.getValue()))));
         symbolsTable.put(currentIdentifier, currentFinalToken);
     }
