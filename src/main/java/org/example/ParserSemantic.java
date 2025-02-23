@@ -3,6 +3,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.*;
 
 public class ParserSemantic {
@@ -182,13 +183,14 @@ public class ParserSemantic {
         MathOperation mathOpTemp = null;
         while (!mathStack.isEmpty()) {
             MathOperation currMathStack = mathStack.pop();
+            System.out.println("currMathStack: " + currMathStack);
             if(currMathStack.value2 == null){
                 currMathStack.value2 = mathOpTemp.result;
             }
             currMathStack.calculeResult();
             mathOpTemp = currMathStack;
         }
-        assignVariable(currentIdentifier, mathOpTemp.result);
+        if(mathOpTemp != null) assignVariable(currentIdentifier, mathOpTemp.result);
         currentIdentifier = null;
         currentOperation = null;
     }
@@ -266,6 +268,7 @@ public class ParserSemantic {
     private void expression() {
         simpleExpr();
         if (match(TokenType.EQUALS, TokenType.RELOP)) {
+            processMathOperation();
             simpleExpr();
         }
     }
@@ -278,17 +281,22 @@ public class ParserSemantic {
 
     private void simpleExprPrime() {
         if (match(TokenType.ADDOP)) {
-            if(!mathStack.isEmpty()) {
-                MathOperation stackPeek = mathStack.pop();
-                mathOperation = new MathOperation();
-                stackPeek.value2 = mathOperation.result; //result do novo mathOp
-                mathStack.add(stackPeek);
-                mathOperation.operation = previous().getLexeme();
-                mathOperation.value1 = factorAtual;
-            } else mathOperation = new MathOperation(previous().getLexeme(), factorAtual, null);
+            processMathOperation();
             term();
             simpleExprPrime();
         }
+    }
+
+    private void processMathOperation() {
+        if(!mathStack.isEmpty()) {
+            MathOperation stackPeek = mathStack.pop();
+            mathOperation = new MathOperation();
+            stackPeek.value2 = mathOperation.result; //result do novo mathOp
+            mathStack.add(stackPeek);
+            mathOperation.operation = previous().getLexeme();
+            mathOperation.value1 = factorAtual;
+            mathOperation.opLine = previous().getLine();
+        } else mathOperation = new MathOperation(previous().getLexeme(), factorAtual, null, peek().getLine());
     }
 
     private void term() {
@@ -298,14 +306,7 @@ public class ParserSemantic {
 
     private void termPrime() {
         if (match(TokenType.MULOP)) {
-            if(!mathStack.isEmpty()) {
-                MathOperation stackPeek = mathStack.pop();
-                 mathOperation = new MathOperation();
-                stackPeek.value2 = mathOperation.result; //result do novo mathOp
-                mathStack.add(stackPeek);
-                mathOperation.operation = previous().getLexeme();
-                mathOperation.value1 = factorAtual;
-            } else mathOperation = new MathOperation(previous().getLexeme(), factorAtual, null);
+            processMathOperation();
             factorA();
             termPrime();
         }
@@ -342,19 +343,6 @@ public class ParserSemantic {
     }
 
     void doMathOperation(MathOperation mathOperation){
-//        if(mathOperation.operation.equals("+")){
-//            if(!currentTypeOfExpression.equals("string")) mathOperation.value = String.valueOf(Float.valueOf(mathOperation.getValue()) + Float.valueOf(factorAtual));
-//            else mathOperation.value += factorAtual;
-//        } else if(mathOperation.operation.equals("*")){
-//            if(!currentTypeOfExpression.equals("string")) mathOperation.value = String.valueOf(Float.valueOf(mathOperation.getValue()) * Float.valueOf(factorAtual));
-//            else mathOperation.value += factorAtual;
-//        } else if(mathOperation.operation.equals("%")){
-//            try{
-//                mathOperation.value = String.valueOf(Integer.parseInt(mathOperation.value) % Integer.parseInt(factorAtual));
-//            } catch(NumberFormatException e){
-//                semanticParserErrors.add("O operador %, requer que ambos operandos sejam inteiros.");
-//            }
-//        }
         mathOperation.expressionType = currentTypeOfExpression;
         mathOperation.value2 = factorAtual;
         var mathOp = new MathOperation(); // nao é temporario
@@ -362,6 +350,7 @@ public class ParserSemantic {
         mathOp.value1 = mathOperation.value1;
         mathOp.value2 = mathOperation.value2;
         mathOp.expressionType = mathOperation.expressionType;
+        mathOp.opLine = mathOperation.opLine;
         mathStack.add(mathOp);
     }
 
@@ -420,10 +409,12 @@ public class ParserSemantic {
         private String value2;
         private String result;
         private String expressionType;
-        public MathOperation(String operation, String value1,  String value2) {
+        private int opLine;
+        public MathOperation(String operation, String value1,  String value2, int opLine) {
             this.operation = operation;
             this.value1 = value1;
             this.value2 = value2;
+            this.opLine = opLine;
         }
 
         public MathOperation() {
@@ -438,11 +429,17 @@ public class ParserSemantic {
             } else if(this.operation.equals("*")){
                 if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) * Float.valueOf(this.value2));
                 else this.result = this.value1 + this.value2;
-            } else if(this.operation.equals("%")){
+            } else if(this.operation.equals("-")){
+                if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) - Float.valueOf(this.value2));
+                else semanticParserErrors.add("ERRO: O operador '-' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
+            } else if(this.operation.equals("/")){
+                if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) / Float.valueOf(this.value2));
+                else semanticParserErrors.add("ERRO: O operador '/' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
+            }  else if(this.operation.equals("%")){
                 try{
                     this.result = String.valueOf(Integer.parseInt(this.value1) % Integer.parseInt(this.value2));
                 } catch(NumberFormatException e){
-                    semanticParserErrors.add("O operador %, requer que ambos operandos sejam inteiros.");
+                    semanticParserErrors.add("ERRO: O operador %, requer que ambos operandos sejam inteiros. Linha: " + this.opLine);
                 }
             }
         }

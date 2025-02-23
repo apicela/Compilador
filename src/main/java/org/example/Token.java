@@ -2,8 +2,8 @@ package org.example;
 
 public class Token {
     private final TokenType type; //constante que representa o token
-    private final String lexeme;
-    private Integer line;
+    private String lexeme;
+    private  Integer line;
 
     public Token(TokenType type, String lexeme, Integer value) {
         if (lexeme.equals(" ")) {
@@ -13,6 +13,11 @@ public class Token {
         this.lexeme = lexeme;
         this.line = value;
     }
+
+    public void setLexeme(String lexeme) {
+        this.lexeme = lexeme;
+    }
+
 
     public TokenType getType() {
         return type;
