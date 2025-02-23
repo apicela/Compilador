@@ -1,10 +1,9 @@
 package org.example;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ParserSemantic {
     private final List<Token> tokens;
@@ -18,6 +17,7 @@ public class ParserSemantic {
     private MathOperation mathOperation;
     private String factorAtual;
     private String currentTypeOfExpression;
+    private Queue<MathOperation> mathStack = new LinkedList<>();
     public ParserSemantic(List<Token> tokens, String fileName) throws IOException {
         this.tokens = tokens;
         this.writer = new FileWriter(fileName, true);
@@ -258,14 +258,20 @@ public class ParserSemantic {
         term(); // preenche factor atual
         simpleExprPrime();
         mathOperation = null;
+        while (!mathStack.isEmpty()) {
+            System.out.println(mathStack.poll().toString());
+        }
     }
 
     private void simpleExprPrime() {
         if (match(TokenType.ADDOP)) {
             System.out.println("ADDOP");
             if(mathOperation != null) {
-                mathOperation.operation = previous().getLexeme();
-            } else mathOperation = new MathOperation(previous().getLexeme(), factorAtual);
+                MathOperation mathOperation2 = new MathOperation();
+                mathOperation.value2 = mathOperation2.result;
+                mathOperation2.operation = previous().getLexeme();
+                mathOperation2.value1 = factorAtual;
+            } else mathOperation = new MathOperation(previous().getLexeme(), factorAtual, null);
             term();
             simpleExprPrime();
         }
@@ -278,10 +284,13 @@ public class ParserSemantic {
 
     private void termPrime() {
         if (match(TokenType.MULOP)) {
-            System.out.println("MULOP");
             if(mathOperation != null) {
-                mathOperation.operation = previous().getLexeme();
-            } else mathOperation = new MathOperation(previous().getLexeme(), factorAtual);
+                MathOperation mathOperation2 = new MathOperation();
+                mathOperation.value2 = mathOperation2.result;
+                mathOperation.result = null;
+                mathOperation2.operation = previous().getLexeme();
+                mathOperation2.value1 = factorAtual;
+            } else mathOperation = new MathOperation(previous().getLexeme(), factorAtual, null);
             factorA();
             termPrime();
         }
@@ -318,15 +327,32 @@ public class ParserSemantic {
     }
 
     void doMathOperation(MathOperation mathOperation){
-        System.out.println("Operacao matematica: value1: " + mathOperation.value + " value2: " + factorAtual + " op: " + mathOperation.operation);
-        if(mathOperation.operation.equals("+")){
-            if(!currentTypeOfExpression.equals("string")) mathOperation.value = String.valueOf(Float.valueOf(mathOperation.getValue()) + Float.valueOf(factorAtual));
-            else mathOperation.value += factorAtual;
-        } else if(mathOperation.operation.equals("*")){
-            if(!currentTypeOfExpression.equals("string")) mathOperation.value = String.valueOf(Float.valueOf(mathOperation.getValue()) * Float.valueOf(factorAtual));
-            else mathOperation.value += factorAtual;
-        }
+//        if(mathOperation.operation.equals("+")){
+//            if(!currentTypeOfExpression.equals("string")) mathOperation.value = String.valueOf(Float.valueOf(mathOperation.getValue()) + Float.valueOf(factorAtual));
+//            else mathOperation.value += factorAtual;
+//        } else if(mathOperation.operation.equals("*")){
+//            if(!currentTypeOfExpression.equals("string")) mathOperation.value = String.valueOf(Float.valueOf(mathOperation.getValue()) * Float.valueOf(factorAtual));
+//            else mathOperation.value += factorAtual;
+//        } else if(mathOperation.operation.equals("%")){
+//            try{
+//                mathOperation.value = String.valueOf(Integer.parseInt(mathOperation.value) % Integer.parseInt(factorAtual));
+//            } catch(NumberFormatException e){
+//                semanticParserErrors.add("O operador %, requer que ambos operandos sejam inteiros.");
+//            }
+//        }
+        mathOperation.expressionType = currentTypeOfExpression;
+        mathOperation.value2 = factorAtual;
+        mathOperation.calculeResult();
+        System.out.println("Math op added: " + mathOperation);
+        var mathOp = new MathOperation(); // nao é temporario
+        mathOp.operation = mathOperation.operation;
+        mathOp.value1 = mathOperation.value1;
+        mathOp.value2 = mathOperation.value2;
+        mathOp.expressionType = mathOperation.expressionType;
+        mathStack.add(mathOp);
     }
+
+
 
     private void verifyAssignment(Token readedToken) {
         FinalToken currentFinalToken = symbolsTable.get(currentIdentifier);
@@ -342,9 +368,10 @@ public class ParserSemantic {
             semanticParserErrors.add(STR."ERRO: Não é possivel associar \{readedToken.getType()} para variável do tipo \{currentFinalToken.getType()}. Linha: \{readedToken.getLine()}");
 
         if(mathOperation != null){
-            currentFinalToken.setValue(mathOperation.getValue());
+            currentFinalToken.setValue(mathOperation.value1);
         } else {
-            currentFinalToken.setValue(readedToken.getLexeme());
+            if(readedToken.getType() == TokenType.IDENTIFIER) currentFinalToken.setValue(symbolsTable.get(readedToken.getLexeme()).getValue());
+            else currentFinalToken.setValue(readedToken.getLexeme());
         }
         if(currentFinalToken.getType().equals("int")) currentFinalToken.setValue(String.valueOf(Math.ceil(Double.parseDouble(currentFinalToken.getValue()))));
         symbolsTable.put(currentIdentifier, currentFinalToken);
@@ -376,27 +403,46 @@ public class ParserSemantic {
 
     private class MathOperation {
         private String operation;
-        private String value;
-
-        public MathOperation(String operation, String value) {
+        private String value1;
+        private String value2;
+        private String result;
+        private String expressionType;
+        public MathOperation(String operation, String value1,  String value2) {
             this.operation = operation;
-            this.value = value;
+            this.value1 = value1;
+            this.value2 = value2;
         }
 
-        public String getOperation() {
-            return operation;
+        public MathOperation() {
         }
 
-        public void setOperation(String operation) {
-            this.operation = operation;
+
+
+        private void calculeResult() {
+            if(this.operation.equals("+")){
+                if(!this.expressionType.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) + Float.valueOf(this.value2));
+                else this.result = this.value1 + this.value2;
+            } else if(this.operation.equals("*")){
+                if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) + Float.valueOf(this.value2));
+                else this.result = this.value1 + this.value2;
+            } else if(this.operation.equals("%")){
+                try{
+                    this.result = String.valueOf(Integer.parseInt(this.value1) % Integer.parseInt(this.value2));
+                } catch(NumberFormatException e){
+                    semanticParserErrors.add("O operador %, requer que ambos operandos sejam inteiros.");
+                }
+            }
         }
 
-        public String getValue() {
-            return value;
-        }
-
-        public void setValue(String value) {
-            this.value = value;
+        @Override
+        public String toString() {
+            return "MathOperation{" +
+                    "operation='" + operation + '\'' +
+                    ", value1='" + value1 + '\'' +
+                    ", value2='" + value2 + '\'' +
+                    ", result='" + result + '\'' +
+                    ", expressionType='" + expressionType + '\'' +
+                    '}';
         }
     }
 }
