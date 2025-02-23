@@ -2,8 +2,7 @@ start
  int kkkk, a,b;
  a = 1;
  b = 2;
- //if (a>b) then
-// kkkk = 3;
-// end;
- kkkk = a +b;
+ if (a>b) then
+ kkkk = 3;
+ end;
  exit

@@ -193,6 +193,7 @@ public class Lexer {
                 Character.toString(ch),
                 unexpectedToken(Character.toString(ch))
         );
+        remainingCharacter.setLine(line);
         ch = ' ';
         return remainingCharacter;
     }

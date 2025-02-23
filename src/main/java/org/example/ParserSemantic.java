@@ -263,7 +263,22 @@ public class ParserSemantic {
 
     private void condition() {
         currentOperation = "expression";
+        currentTypeOfExpression = "boolean";
         expression();
+        MathOperation mathOpTemp = null;
+        while (!mathStack.isEmpty()) {
+            MathOperation currMathStack = mathStack.pop();
+            System.out.println("currMathStack: " + currMathStack);
+            if(currMathStack.value2 == null){
+                currMathStack.value2 = mathOpTemp.result;
+            }
+            currMathStack.calculeResult();
+            mathOpTemp = currMathStack;
+        }
+        if(mathOpTemp != null) verifyCondition(mathOpTemp);
+        currentIdentifier = null;
+        currentOperation = null;
+
     }
 
     private void expression() {
@@ -296,8 +311,10 @@ public class ParserSemantic {
             mathStack.add(stackPeek);
             mathOperation.operation = previous().getLexeme();
             mathOperation.value1 = factorAtual;
+            System.out.println(" mathOperation.value1 " +  mathOperation.value1);
             mathOperation.opLine = previous().getLine();
         } else mathOperation = new MathOperation(previous().getLexeme(), factorAtual, null, peek().getLine());
+        System.out.println(" factorAtual : "  + factorAtual);
     }
 
     private void term() {
@@ -335,13 +352,13 @@ public class ParserSemantic {
         if (match(TokenType.IDENTIFIER, TokenType.CONSTANT_INTEGER, TokenType.CONSTANT_FLOAT, TokenType.LITERAL)) {
             Token readedToken = previous(); // pega o token
             if(readedToken.getType() == TokenType.IDENTIFIER)
-                factorAtual = String.valueOf(symbolsTable.getOrDefault(readedToken.getLexeme(), null)); // se for variavel pega o valor dela
+                factorAtual = String.valueOf(symbolsTable.getOrDefault(readedToken.getLexeme(), null).getValue()); // se for variavel pega o valor dela
              else factorAtual = readedToken.getLexeme();
             if(mathOperation != null){
                 doMathOperation(mathOperation);
             }
             if(currentOperation.equals("assign")) verifyAssignment(readedToken);
-            else if(currentOperation.equals("expression")) verifyCondition(readedToken);
+        //    else if(currentOperation.equals("expression")) verifyCondition(readedToken);
         } else if (match(TokenType.OPEN_ROUND)) {
             expression();
             if(!match(TokenType.CLOSE_ROUND)){
@@ -354,22 +371,8 @@ public class ParserSemantic {
 
     }
 
-    private void verifyCondition(Token readedToken) {
-        FinalToken currentFinalToken = symbolsTable.get(currentIdentifier);
-        if(currentFinalToken == null){
-            semanticParserErrors.add("ERRO: Está utilizando uma variável inexistente. Linha: " + readedToken.getLine());
-            return;
-        }
-
-
-        if(mathOperation != null){
-            currentFinalToken.setValue(mathOperation.value1);
-        } else {
-            if(readedToken.getType() == TokenType.IDENTIFIER) currentFinalToken.setValue(symbolsTable.get(readedToken.getLexeme()).getValue());
-            else currentFinalToken.setValue(readedToken.getLexeme());
-        }
-        if(currentFinalToken.getType().equals("int")) currentFinalToken.setValue(String.valueOf(Math.ceil(Double.parseDouble(currentFinalToken.getValue()))));
-        symbolsTable.put(currentIdentifier, currentFinalToken);
+    private void verifyCondition(MathOperation mathOperation) {
+        System.out.println("mathOperation " + mathOperation);
     }
 
     void doMathOperation(MathOperation mathOperation){
@@ -469,7 +472,22 @@ public class ParserSemantic {
             } else if(this.operation.equals("/")){
                 if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) / Float.valueOf(this.value2));
                 else semanticParserErrors.add("ERRO: O operador '/' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
-            }  else if(this.operation.equals("%")){
+            } else if(this.operation.equals(">")){
+                if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) > Float.valueOf(this.value2));
+                else semanticParserErrors.add("ERRO: O operador '>' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
+            }  else if(this.operation.equals(">=")){
+                if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) >= Float.valueOf(this.value2));
+                else semanticParserErrors.add("ERRO: O operador '>=' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
+            }  else if(this.operation.equals("<")){
+                if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) < Float.valueOf(this.value2));
+                else semanticParserErrors.add("ERRO: O operador '<' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
+            }  else if(this.operation.equals("<=")){
+                if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) <= Float.valueOf(this.value2));
+                else semanticParserErrors.add("ERRO: O operador '<=' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
+            }  else if(this.operation.equals("==")){
+                if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) == Float.valueOf(this.value2));
+                else semanticParserErrors.add("ERRO: O operador '==' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
+            }   else if(this.operation.equals("%")){
                 try{
                     this.result = String.valueOf(Integer.parseInt(this.value1) % Integer.parseInt(this.value2));
                 } catch(NumberFormatException e){

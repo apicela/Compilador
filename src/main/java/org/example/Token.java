@@ -36,10 +36,19 @@ public class Token {
         return lexeme;
     }
 
+//    @Override
+//    public String toString() {
+//        return this.type +
+//                " | " + this.lexeme
+//                + ((this.type == TokenType.UNEXPECTED || this.type == TokenType.ERROR) ? " | " + this.line : "");
+//    }
+
     @Override
     public String toString() {
-        return this.type +
-                " | " + this.lexeme
-                + ((this.type == TokenType.UNEXPECTED || this.type == TokenType.ERROR) ? " | " + this.line : "");
+        return "Token{" +
+                "type=" + type +
+                ", lexeme='" + lexeme + '\'' +
+                ", line=" + line +
+                '}';
     }
 }
