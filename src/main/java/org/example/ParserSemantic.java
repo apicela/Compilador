@@ -14,6 +14,10 @@ public class ParserSemantic {
     private final Map<String, FinalToken> symbolsTable = new HashMap<>();
     private String currentDeclarationType;
     private String currentIdentifier;
+    private String currentOperation;
+    private MathOperation mathOperation;
+    private String factorAtual;
+    private String currentTypeOfExpression;
     public ParserSemantic(List<Token> tokens, String fileName) throws IOException {
         this.tokens = tokens;
         this.writer = new FileWriter(fileName, true);
@@ -168,19 +172,19 @@ public class ParserSemantic {
     }
 
     private void assignStmt() {
+        currentOperation = "assign";
         identifier();
         currentIdentifier = previous().getLexeme();
+        currentTypeOfExpression = symbolsTable.get(currentIdentifier) != null ? symbolsTable.get(currentIdentifier).getType() : "";
         if(!match(TokenType.EQUALS)){
             throw new RuntimeException("Erro de sintaxe: esperado 'EQUALS', mas encontrado " + peek().getType());
         }
         simpleExpr();
         currentIdentifier = null;
+        currentOperation = null;
     }
 
-    private void simpleExpr() {
-        term();
-        simpleExprPrime();
-    }
+
 
     private void ifStmt() {
         condition();
@@ -222,12 +226,12 @@ public class ParserSemantic {
 
     private void writeStmt() {
         if(!match(TokenType.OPEN_ROUND)){
-            throw new RuntimeException("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType());
+            throw new RuntimeException("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType()+ " na linha " + " peek().getLine ");
         }
         writable();
         if(!match(TokenType.CLOSE_ROUND)){
             writeAndFlush(")");
-            throw new RuntimeException("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType());
+            semanticParserErrors.add("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType());
         }
     }
 
@@ -251,9 +255,14 @@ public class ParserSemantic {
         }
     }
 
+    private void simpleExpr() {
+        term(); // preenche factor atual
+        simpleExprPrime();
+    }
 
     private void simpleExprPrime() {
         if (match(TokenType.ADDOP)) {
+            mathOperation = new MathOperation(previous().getLexeme(), factorAtual);
             term();
             simpleExprPrime();
         }
@@ -266,8 +275,10 @@ public class ParserSemantic {
 
     private void termPrime() {
         if (match(TokenType.MULOP)) {
+            mathOperation = new MathOperation(previous().getLexeme(), factorAtual);
             factorA();
             termPrime();
+            mathOperation = null;
         }
     }
 
@@ -280,11 +291,16 @@ public class ParserSemantic {
     }
 
     private void factor()  {
-        if (match(TokenType.IDENTIFIER)) {
-            verifyAssignment();
-        } else if(match(TokenType.CONSTANT_INTEGER, TokenType.CONSTANT_FLOAT, TokenType.LITERAL)){
-
-        }else if (match(TokenType.OPEN_ROUND)) {
+        if (match(TokenType.IDENTIFIER, TokenType.CONSTANT_INTEGER, TokenType.CONSTANT_FLOAT, TokenType.LITERAL)) {
+            Token readedToken = previous(); // pega o token
+            if(readedToken.getType() == TokenType.IDENTIFIER)
+                factorAtual = String.valueOf(symbolsTable.getOrDefault(readedToken.getLexeme(), null)); // se for variavel pega o valor dela
+             else factorAtual = readedToken.getLexeme();
+            if(mathOperation != null){
+                doMathOperation(mathOperation);
+            }
+            if(currentOperation.equals("assign")) verifyAssignment(readedToken);
+        } else if (match(TokenType.OPEN_ROUND)) {
             expression();
             if(!match(TokenType.CLOSE_ROUND)){
                 writeAndFlush(")");
@@ -296,17 +312,32 @@ public class ParserSemantic {
 
     }
 
-    private void verifyAssignment() {
+    void doMathOperation(MathOperation mathOperation){
+        if(mathOperation.operation.equals("+")){
+            if(currentTypeOfExpression.equals("float")) mathOperation.value = String.valueOf(Float.valueOf(mathOperation.getValue()) + Float.valueOf(factorAtual));
+            else if(currentTypeOfExpression.equals("int")) mathOperation.value = String.valueOf(Integer.valueOf(mathOperation.getValue()) + Integer.valueOf(factorAtual));
+        }
+    }
+
+    private void verifyAssignment(Token readedToken) {
         FinalToken currentFinalToken = symbolsTable.get(currentIdentifier);
-        Token readedToken = previous();
-        System.out.println("VERIFY ASSIGNMENT" + currentFinalToken + " readed: " + readedToken);
-        if(currentFinalToken == null) semanticParserErrors.add("ERRO: Está utilizando uma variável inexistente. Linha: " + readedToken.getLine());
+        if(currentFinalToken == null){
+            semanticParserErrors.add("ERRO: Está utilizando uma variável inexistente. Linha: " + readedToken.getLine());
+            return;
+        }
         if(readedToken.getType() == TokenType.CONSTANT_FLOAT && !currentFinalToken.getType().equals("float"))
             semanticParserErrors.add(STR."ERRO: Não é possivel associar \{readedToken.getType()} para variável do tipo \{currentFinalToken.getType()}. Linha: \{readedToken.getLine()}");
         else  if(readedToken.getType() == TokenType.CONSTANT_INTEGER && !currentFinalToken.getType().equals("int"))
             semanticParserErrors.add(STR."ERRO: Não é possivel associar \{readedToken.getType()} para variável do tipo \{currentFinalToken.getType()}. Linha: \{readedToken.getLine()}");
         else  if(readedToken.getType() == TokenType.LITERAL && !currentFinalToken.getType().equals("string"))
             semanticParserErrors.add(STR."ERRO: Não é possivel associar \{readedToken.getType()} para variável do tipo \{currentFinalToken.getType()}. Linha: \{readedToken.getLine()}");
+
+        if(mathOperation != null){
+            currentFinalToken.setValue(mathOperation.getValue());
+        } else {
+            currentFinalToken.setValue(readedToken.getLexeme());
+        }
+        symbolsTable.put(currentIdentifier, currentFinalToken);
     }
 
     void writeAndFlush(String str)  {
@@ -330,6 +361,32 @@ public class ParserSemantic {
         System.out.println("ERROS SEMANTICOS: ");
         for(String s : semanticParserErrors){
             System.out.println(s);
+        }
+    }
+
+    private class MathOperation {
+        private String operation;
+        private String value;
+
+        public MathOperation(String operation, String value) {
+            this.operation = operation;
+            this.value = value;
+        }
+
+        public String getOperation() {
+            return operation;
+        }
+
+        public void setOperation(String operation) {
+            this.operation = operation;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public void setValue(String value) {
+            this.value = value;
         }
     }
 }
