@@ -258,11 +258,14 @@ public class ParserSemantic {
     private void simpleExpr() {
         term(); // preenche factor atual
         simpleExprPrime();
+        mathOperation = null;
     }
 
     private void simpleExprPrime() {
         if (match(TokenType.ADDOP)) {
-            mathOperation = new MathOperation(previous().getLexeme(), factorAtual);
+            if(mathOperation != null) {
+                mathOperation.operation = previous().getLexeme();
+            } else mathOperation = new MathOperation(previous().getLexeme(), factorAtual);
             term();
             simpleExprPrime();
         }
@@ -278,7 +281,6 @@ public class ParserSemantic {
             mathOperation = new MathOperation(previous().getLexeme(), factorAtual);
             factorA();
             termPrime();
-            mathOperation = null;
         }
     }
 
@@ -313,9 +315,11 @@ public class ParserSemantic {
     }
 
     void doMathOperation(MathOperation mathOperation){
+        System.out.println("doMathOperation");
         if(mathOperation.operation.equals("+")){
             if(currentTypeOfExpression.equals("float")) mathOperation.value = String.valueOf(Float.valueOf(mathOperation.getValue()) + Float.valueOf(factorAtual));
             else if(currentTypeOfExpression.equals("int")) mathOperation.value = String.valueOf(Integer.valueOf(mathOperation.getValue()) + Integer.valueOf(factorAtual));
+            System.out.println("mathOperation.getValue(): " + mathOperation.getValue());
         }
     }
 
