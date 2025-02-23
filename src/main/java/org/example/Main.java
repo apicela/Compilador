@@ -13,23 +13,26 @@ public class Main {
             return; 
         }
 */
-
+        ParserSemantic parserSemantic = null;
         // O nome do arquivo é o primeiro argumento passado
         //  String caminhoArquivo = args[0];
-        String caminhoArquivo = "C:\\Users\\arthu\\IdeaProjects\\Compilador\\out\\artifacts\\Compiler_jar\\teste02.txt";
+        String caminhoArquivo = "out\\artifacts\\Compiler_jar\\oi.txt";
         try {
             Lexer lexer = new Lexer(caminhoArquivo);
             List<Token> tokens = lexer.processTokens();
             for (Token t : tokens) {
                 System.out.println(t);
             }
-            Parser parser = new Parser(tokens, caminhoArquivo);
-            parser.start();
+            parserSemantic = new ParserSemantic(tokens, caminhoArquivo);
+            parserSemantic.start();
+            parserSemantic.printTable();
 
         } catch (RuntimeException e) {
             System.out.println(e.getMessage());
         } catch (Exception e) {
             System.err.println("Erro ao ler o arquivo: " + e.getMessage());
+        } finally {
+            if(parserSemantic != null) parserSemantic.printErrors();
         }
     }
 }

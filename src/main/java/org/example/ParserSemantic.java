@@ -2,15 +2,19 @@ package org.example;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class Parser {
+public class ParserSemantic {
     private final List<Token> tokens;
     private int current = 0;
-    private final List<String> parserErrors = new ArrayList<String>();
+    private final List<String> semanticParserErrors = new ArrayList<String>();
     private final FileWriter writer;
-
-    public Parser(List<Token> tokens, String fileName) throws IOException {
+    private final Map<String, FinalToken> symbolsTable = new HashMap<>();
+    private String currentDeclarationType;
+    private String currentIdentifier;
+    public ParserSemantic(List<Token> tokens, String fileName) throws IOException {
         this.tokens = tokens;
         this.writer = new FileWriter(fileName, true);
     }
@@ -80,7 +84,8 @@ public class Parser {
         if(!type()){
             return false; //ou seja nao conseguiu formar um decl
         }
-
+        currentDeclarationType = previous().getLexeme();
+        System.out.println(currentDeclarationType);
         identList();
         if(!match(TokenType.SEMICOLON)){
             writeAndFlush(";");
@@ -94,19 +99,29 @@ public class Parser {
     }
 
     private void identList() {
-        if(!identifier()){
+        boolean isIdentifier = identifier();
+        if(!isIdentifier){
             throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER', mas encontrado " + peek().getType());
         }
-
+        putAndVerifyDuplicated();
         while (match(TokenType.COMMA)) {
             if(!identifier()) {
                 throw new RuntimeException("Erro de sintaxe: esperado 'IDENTIFIER', mas encontrado " + peek().getType());
             }
+            putAndVerifyDuplicated();
         }
+        currentDeclarationType = null;
+    }
+
+    private void putAndVerifyDuplicated(){
+        Token readedToken = previous();
+        if(symbolsTable.get(readedToken.getLexeme()) == null){ // se nao existe na tabela, adiciona
+            symbolsTable.put(readedToken.getLexeme(), new FinalToken(currentDeclarationType, readedToken.getLexeme()));
+        } else semanticParserErrors.add("ERRO: Está ferindo as regras de unicidade de nossa linguagem. Linha: " + readedToken.getLine());
     }
 
     private boolean identifier() {
-        return match(TokenType.IDENTIFIER);
+        return  match(TokenType.IDENTIFIER);
     }
 
 
@@ -154,11 +169,12 @@ public class Parser {
 
     private void assignStmt() {
         identifier();
+        currentIdentifier = previous().getLexeme();
         if(!match(TokenType.EQUALS)){
             throw new RuntimeException("Erro de sintaxe: esperado 'EQUALS', mas encontrado " + peek().getType());
         }
-
         simpleExpr();
+        currentIdentifier = null;
     }
 
     private void simpleExpr() {
@@ -264,9 +280,11 @@ public class Parser {
     }
 
     private void factor()  {
-        if (match(TokenType.IDENTIFIER, TokenType.CONSTANT_INTEGER, TokenType.CONSTANT_FLOAT, TokenType.LITERAL)) {
+        if (match(TokenType.IDENTIFIER)) {
+            verifyAssignment();
+        } else if(match(TokenType.CONSTANT_INTEGER, TokenType.CONSTANT_FLOAT, TokenType.LITERAL)){
 
-        } else if (match(TokenType.OPEN_ROUND)) {
+        }else if (match(TokenType.OPEN_ROUND)) {
             expression();
             if(!match(TokenType.CLOSE_ROUND)){
                 writeAndFlush(")");
@@ -278,6 +296,19 @@ public class Parser {
 
     }
 
+    private void verifyAssignment() {
+        FinalToken currentFinalToken = symbolsTable.get(currentIdentifier);
+        Token readedToken = previous();
+        System.out.println("VERIFY ASSIGNMENT" + currentFinalToken + " readed: " + readedToken);
+        if(currentFinalToken == null) semanticParserErrors.add("ERRO: Está utilizando uma variável inexistente. Linha: " + readedToken.getLine());
+        if(readedToken.getType() == TokenType.CONSTANT_FLOAT && !currentFinalToken.getType().equals("float"))
+            semanticParserErrors.add(STR."ERRO: Não é possivel associar \{readedToken.getType()} para variável do tipo \{currentFinalToken.getType()}. Linha: \{readedToken.getLine()}");
+        else  if(readedToken.getType() == TokenType.CONSTANT_INTEGER && !currentFinalToken.getType().equals("int"))
+            semanticParserErrors.add(STR."ERRO: Não é possivel associar \{readedToken.getType()} para variável do tipo \{currentFinalToken.getType()}. Linha: \{readedToken.getLine()}");
+        else  if(readedToken.getType() == TokenType.LITERAL && !currentFinalToken.getType().equals("string"))
+            semanticParserErrors.add(STR."ERRO: Não é possivel associar \{readedToken.getType()} para variável do tipo \{currentFinalToken.getType()}. Linha: \{readedToken.getLine()}");
+    }
+
     void writeAndFlush(String str)  {
         try{
             writer.write(str);
@@ -285,6 +316,20 @@ public class Parser {
         } catch (Exception e){
             throw new RuntimeException(e.getMessage());
         }
+    }
 
+    void printTable(){
+        for (Map.Entry<String, FinalToken> entry : symbolsTable.entrySet()) {
+            String key = entry.getKey();
+            FinalToken value = entry.getValue();
+            System.out.println("Chave: " + key + " Valor: " + value.toString());
+        }
+    }
+
+    void printErrors(){
+        System.out.println("ERROS SEMANTICOS: ");
+        for(String s : semanticParserErrors){
+            System.out.println(s);
+        }
     }
 }
