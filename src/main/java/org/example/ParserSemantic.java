@@ -17,6 +17,7 @@ public class ParserSemantic {
     private String factorAtual;
     private String currentTypeOfExpression;
     private Stack<MathOperation> mathStack = new Stack<>();
+    private List<String> semanticErrors = new ArrayList<>();
     public ParserSemantic(List<Token> tokens, String fileName) throws IOException {
         this.tokens = tokens;
         this.writer = new FileWriter(fileName, true);
@@ -68,12 +69,12 @@ public class ParserSemantic {
 
     private void program() {
         if(!match(TokenType.START)){
-           semanticParserErrors.add("Erro de sintaxe: esperado 'START', mas encontrado " + peek().getType() + " na linha " +  peek().getLine() + ". O código-fonte foi corrigido e adicionado START ");
+            semanticErrors.add("Erro de sintaxe: esperado 'START', mas encontrado " + peek().getType() + " na linha " +  peek().getLine() + ". O código-fonte foi corrigido e adicionado START ");
         }
         declList();
         stmtList();
         if(!match(TokenType.EXIT)){
-            semanticParserErrors.add("Erro de sintaxe: esperado 'EXIT', mas encontrado " + peek().getType() + " na linha " +  peek().getLine() + ". O código-fonte foi corrigido e adicionado EXIT ");
+            semanticErrors.add("Erro de sintaxe: esperado 'EXIT', mas encontrado " + peek().getType() + " na linha " +  peek().getLine() + ". O código-fonte foi corrigido e adicionado EXIT ");
         }
     }
 
@@ -91,7 +92,7 @@ public class ParserSemantic {
         identList();
         if(!match(TokenType.SEMICOLON)){
             writeAndFlush(";");
-            semanticParserErrors.add("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
+            semanticErrors.add("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
         }
         return true;
     }
@@ -120,7 +121,7 @@ public class ParserSemantic {
         if(symbolsTable.get(readedToken.getLexeme()) == null){ // se nao existe na tabela, adiciona
             symbolsTable.put(readedToken.getLexeme(), new FinalToken(currentDeclarationType, readedToken.getLexeme()));
         } else{
-            semanticParserErrors.add("ERRO: Está ferindo as regras de unicidade de nossa linguagem. Linha: " + readedToken.getLine());
+            semanticParserErrors.add("ERRO Semântico: Está ferindo as regras de unicidade de nossa linguagem. Linha: " + readedToken.getLine());
         }
     }
 
@@ -142,7 +143,7 @@ public class ParserSemantic {
             assignStmt();
             if(!match(TokenType.SEMICOLON)){
                 writeAndFlush(";");
-                semanticParserErrors.add("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
+                semanticErrors.add("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
             }
         } else if (match(TokenType.IF)) {
             ifStmt();
@@ -152,13 +153,13 @@ public class ParserSemantic {
             readStmt();
             if(!match(TokenType.SEMICOLON)){
                 writeAndFlush(";");
-                semanticParserErrors.add("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
+                semanticErrors.add("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
             }
         } else if (match(TokenType.PRINT)) {
             writeStmt();
             if(!match(TokenType.SEMICOLON)){
                 writeAndFlush(";");
-                semanticParserErrors.add("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
+                semanticErrors.add("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
             }
         } else {
             if(obrigatorio==1){
@@ -205,14 +206,14 @@ public class ParserSemantic {
     private void ifStmt() {
         condition();
         if(!match(TokenType.THEN)){
-           semanticParserErrors.add("Erro de sintaxe: esperado 'THEN', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + "  Erro ignorado e iremos continuar análise.");
+            semanticErrors.add("Erro de sintaxe: esperado 'THEN', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + "  Erro ignorado e iremos continuar análise.");
         }
         stmtList();
         if (match(TokenType.ELSE)) {
             stmtList();
         }
         if(!match(TokenType.END)){
-            semanticParserErrors.add("Erro de sintaxe: esperado 'END', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + "  Erro ignorado e iremos continuar análise.");
+            semanticErrors.add("Erro de sintaxe: esperado 'END', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + "  Erro ignorado e iremos continuar análise.");
         }
     }
 
@@ -229,25 +230,25 @@ public class ParserSemantic {
 
     private void readStmt() {
         if(!match(TokenType.OPEN_ROUND)){
-            semanticParserErrors.add("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + " . Erro ignorado e iremos continuar");
+            semanticErrors.add("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + " . Erro ignorado e iremos continuar");
         }
         if(!identifier()){
             throw new RuntimeException("Erro de sintaxe: esperado 'identifier', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + ". ERRO NÃO SERÁ CORRIGIDO E ANÁLISE FINALIZOU");
         }
         if(!match(TokenType.CLOSE_ROUND)){
             writeAndFlush(")");
-            semanticParserErrors.add("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
+            semanticErrors.add("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
         }
     }
 
     private void writeStmt() {
         if(!match(TokenType.OPEN_ROUND)){
-            semanticParserErrors.add("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + " . Erro ignorado e iremos continuar");
+            semanticErrors.add("Erro de sintaxe: esperado 'OPEN_ROUND', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + " . Erro ignorado e iremos continuar");
         }
         writable();
         if(!match(TokenType.CLOSE_ROUND)){
             writeAndFlush(")");
-            semanticParserErrors.add("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
+            semanticErrors.add("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
         }
     }
 
@@ -328,20 +329,20 @@ public class ParserSemantic {
     private void factorA() {
         if (match(TokenType.NOT, TokenType.ADDOP)) {
             if(previous().getLexeme().equals("+")){
-                semanticParserErrors.add("O operador '+' não é aplicavel em " + previous().getType()+ " na linha " +  previous().getLine() );
+                semanticParserErrors.add("ERRO Semântico: O operador '+' não é aplicavel em " + previous().getType()+ " na linha " +  previous().getLine() );
             }else if(previous().getLexeme().equals("-")){
                 Token t = peek();
                 if(t.getType()==TokenType.CONSTANT_INTEGER || t.getType()==TokenType.CONSTANT_FLOAT){
                     t.setLexeme("-" + t.getLexeme());
 
                 }else if(t.getType()==TokenType.LITERAL){
-                    semanticParserErrors.add("O operador '-' não é aplicavel em " + peek().getType()+ " na linha " +  peek().getLine() ); //nao se pode fazer -{aaaa}
+                    semanticParserErrors.add("ERRO Semântico: O operador '-' não é aplicavel em " + peek().getType()+ " na linha " +  peek().getLine() ); //nao se pode fazer -{aaaa}
 
 
                 }else if (t.getType()==TokenType.IDENTIFIER) {
                     FinalToken t1 = symbolsTable.get(t.getLexeme());
                     if(t1 == null) {
-                        semanticParserErrors.add("O identificador " + peek().getLexeme() + " na linha " + peek().getLine() + " nao existe"); //nao se pode fazer -a se a nao existir
+                        semanticParserErrors.add("ERRO Semântico: O identificador " + peek().getLexeme() + " na linha " + peek().getLine() + " nao existe"); //nao se pode fazer -a se a nao existir
                     }else{ //se o literal realmente existe precisamos inverter o valor
                         t1.setValue("-" + (t1.getValue()));
                         symbolsTable.put(t.getLexeme(), t1);
@@ -363,9 +364,9 @@ public class ParserSemantic {
         if (match(TokenType.IDENTIFIER, TokenType.CONSTANT_INTEGER, TokenType.CONSTANT_FLOAT, TokenType.LITERAL)) {
             Token readedToken = previous(); // pega o token
             if(readedToken.getType() == TokenType.IDENTIFIER){
-                FinalToken t = symbolsTable.getOrDefault(readedToken.getLexeme(), null);
+                FinalToken t = symbolsTable.get(readedToken.getLexeme());
                 if(t != null) factorAtual =  String.valueOf(t.getValue());
-                else factorAtual = null;
+                else semanticParserErrors.add("ERRO Semântico: A variável " + readedToken.getLexeme() + " não foi declarada. linha: "  +readedToken.getLine() );
             }
              else factorAtual = readedToken.getLexeme();
             if(mathOperation != null){
@@ -379,10 +380,10 @@ public class ParserSemantic {
             expression();
             if(!match(TokenType.CLOSE_ROUND)){
                 writeAndFlush(")");
-                semanticParserErrors.add("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
+                semanticErrors.add("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
             }
         } else {
-            semanticParserErrors.add("Erro de sintaxe: esperado 'IDENTIFIER' ou 'CONSTANT_INTEGER' ou 'LITERAL' ou 'OPEN_ROUND', mas encontrado " + peek().getType() + " na linha " + peek().getLine());
+            semanticErrors.add("Erro de sintaxe: esperado 'IDENTIFIER' ou 'CONSTANT_INTEGER' ou 'LITERAL' ou 'OPEN_ROUND', mas encontrado " + peek().getType() + " na linha " + peek().getLine());
         }
 
     }
@@ -390,7 +391,7 @@ public class ParserSemantic {
     private void verifyCondition(Token readedToken) {
         FinalToken currentFinalToken = symbolsTable.get(currentIdentifier);
         if(currentFinalToken == null){
-            semanticParserErrors.add("ERRO: Está utilizando uma variável inexistente. Linha: " + readedToken.getLine());
+            semanticParserErrors.add("ERRO Semantico: Está utilizando uma variável inexistente. Linha: " + readedToken.getLine());
             return;
         }
     }
@@ -410,17 +411,17 @@ public class ParserSemantic {
     private void verifyAssignment(Token readedToken) {
         FinalToken currentFinalToken = symbolsTable.get(currentIdentifier);
         if(currentFinalToken == null){
-            semanticParserErrors.add("ERRO: Está utilizando uma variável inexistente. Linha: " + readedToken.getLine());
+            semanticParserErrors.add("ERRO Semantico: Está utilizando uma variável inexistente. Linha: " + readedToken.getLine());
             return;
         }
         if (readedToken.getType() == TokenType.CONSTANT_FLOAT && !currentFinalToken.getType().equals("float"))
-            semanticParserErrors.add(String.format("ERRO: Não é possivel associar %s para variável do tipo %s. Linha: %d",
+            semanticParserErrors.add(String.format("ERRO Semantico: Não é possivel associar %s para variável do tipo %s. Linha: %d",
                     readedToken.getType(), currentFinalToken.getType(), readedToken.getLine()));
         else if (readedToken.getType() == TokenType.CONSTANT_INTEGER && !currentFinalToken.getType().equals("int"))
-            semanticParserErrors.add(String.format("ERRO: Não é possivel associar %s para variável do tipo %s. Linha: %d",
+            semanticParserErrors.add(String.format("ERRO Semantico: Não é possivel associar %s para variável do tipo %s. Linha: %d",
                     readedToken.getType(), currentFinalToken.getType(), readedToken.getLine()));
         else if (readedToken.getType() == TokenType.LITERAL && !currentFinalToken.getType().equals("string"))
-            semanticParserErrors.add(String.format("ERRO: Não é possivel associar %s para variável do tipo %s. Linha: %d",
+            semanticParserErrors.add(String.format("ERRO Semantico: Não é possivel associar %s para variável do tipo %s. Linha: %d",
                     readedToken.getType(), currentFinalToken.getType(), readedToken.getLine()));
 
         if(mathOperation != null){
@@ -477,6 +478,7 @@ public class ParserSemantic {
 
 
         private void calculeResult() {
+            try{
             if(this.operation.equals("+")){
                 if(!this.expressionType.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) + Float.valueOf(this.value2));
                 else this.result = this.value1 + this.value2;
@@ -485,31 +487,34 @@ public class ParserSemantic {
                 else this.result = this.value1 + this.value2;
             } else if(this.operation.equals("-")){
                 if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) - Float.valueOf(this.value2));
-                else semanticParserErrors.add("ERRO: O operador '-' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
+                else semanticParserErrors.add("ERRO Semantico: O operador '-' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
             } else if(this.operation.equals("/")){
                 if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) / Float.valueOf(this.value2));
-                else semanticParserErrors.add("ERRO: O operador '/' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
+                else semanticParserErrors.add("ERRO Semantico: O operador '/' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
             } else if(this.operation.equals(">")){
                 if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) > Float.valueOf(this.value2));
-                else semanticParserErrors.add("ERRO: O operador '>' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
+                else semanticParserErrors.add("ERRO Semantico: O operador '>' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
             }  else if(this.operation.equals(">=")){
                 if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) >= Float.valueOf(this.value2));
-                else semanticParserErrors.add("ERRO: O operador '>=' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
+                else semanticParserErrors.add("ERRO Semantico: O operador '>=' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
             }  else if(this.operation.equals("<")){
                 if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) < Float.valueOf(this.value2));
-                else semanticParserErrors.add("ERRO: O operador '<' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
+                else semanticParserErrors.add("ERRO Semantico: O operador '<' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
             }  else if(this.operation.equals("<=")){
                 if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) <= Float.valueOf(this.value2));
-                else semanticParserErrors.add("ERRO: O operador '<=' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
+                else semanticParserErrors.add("ERRO Semantico : O operador '<=' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
             }  else if(this.operation.equals("==")){
                 if(!currentTypeOfExpression.equals("string")) this.result = String.valueOf(Float.valueOf(this.value1) == Float.valueOf(this.value2));
-                else semanticParserErrors.add("ERRO: O operador '==' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
+                else semanticParserErrors.add("ERRO Semantico: O operador '==' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
             }   else if(this.operation.equals("%")){
                 try{
                     this.result = String.valueOf(Integer.parseInt(this.value1) % Integer.parseInt(this.value2));
                 } catch(NumberFormatException e){
-                    semanticParserErrors.add("ERRO: O operador %, requer que ambos operandos sejam inteiros. Linha: " + this.opLine);
+                    this.result = "null";
                 }
+            }
+            } catch(NumberFormatException e){
+                semanticParserErrors.add("ERRO Semantico: O operador %, requer que ambos operandos sejam inteiros. Linha: " + this.opLine);
             }
         }
 
