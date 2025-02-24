@@ -33,11 +33,7 @@ public class Main {
             System.err.println("Erro ao ler o arquivo: " + e.getMessage());
         } finally {
             if(parserSemantic != null){
-                //  System.out.println("SINTATICO: ");
-                //   parserSemantic.printSintaticErrors();
                 parserSemantic.printErrorsSemantic();
-                //    System.out.println("TABLE: ");
-                //    parserSemantic.printTable();
             }
 
         }

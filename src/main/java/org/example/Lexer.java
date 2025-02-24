@@ -307,59 +307,7 @@ public class Lexer {
                 System.out.println(error);
             }
             System.out.println("=====================");
-            System.out.println("CÓDIGO FONTE INVÁLIDO.");
+            System.out.println("CÓDIGO FONTE INVÁLIDO. FAVOR CORRIGIR ERROS LÉXICOS APRESENTADOS.");
             System.exit(0);
     }
-//    private void printResults() {
-//        // Definindo a largura de cada coluna
-//        final int COL_WIDTH_1 = 10; // Largura para "TYPE"
-//        final int COL_WIDTH_2 = 15; // Largura para "LEXEME"
-//
-//        // Cabeçalho da tabela
-//        List<Map.Entry<String, Token>> sortedEntries = new ArrayList<>(symbolsTable.entrySet());
-//
-//// Ordenar as entradas pela propriedade TokenType de Token
-//        sortedEntries.sort((entry1, entry2) -> entry1.getValue().getType().compareTo(entry2.getValue().getType()));
-//
-//        System.out.println("=====================");
-//        System.out.println("TABELA DE SIMBOLOS: " + symbolsTable.size());
-//        System.out.println("=====================");
-//
-//        System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", "TOKEN TYPE", "LEXEME");
-//
-//        for (Map.Entry<String, Token> entry : sortedEntries) {
-//            Token valor = entry.getValue();
-//            // Ajustar o método toString do Token para retornar os valores corretamente
-//            System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", valor.getType(), valor.getLexeme());
-//        }
-//
-//        // Imprimindo a tabela de TOKENS (sem VALUE)
-//        System.out.println("=====================");
-//        System.out.println("      TOKENS: " + list.size());
-//        System.out.println("=====================");
-//        System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n", "TOKEN TYPE", "LEXEME");
-//
-//        for (Token t : list) {
-//            System.out.printf("%-" + COL_WIDTH_1 + "s | %-" + COL_WIDTH_2 + "s%n",
-//                    t.getType(), t.getLexeme());
-//        }
-//        if(errors.isEmpty()){
-//            System.out.println("CÓDIGO FONTE VÁLIDO. NÃO HOUVE ERROS ENCONTRADOS.");
-//        }else{
-//
-//            // Imprimindo erros
-//            System.out.println("=====================");
-//            System.out.println("      ERROS: " + errors.size());
-//            System.out.println("=====================");
-//
-//            for (String error : errors) {
-//                System.out.println(error);
-//            }
-//            System.out.println("=====================");
-//            System.out.println("CÓDIGO FONTE INVÁLIDO.");
-//        }
-//
-//    }
-
-
 }

@@ -6,9 +6,6 @@ public class Token {
     private  Integer line;
 
     public Token(TokenType type, String lexeme, Integer value) {
-        if (lexeme.equals(" ")) {
-            System.out.println("vazio");
-        }
         this.type = type;
         this.lexeme = lexeme;
         this.line = value;

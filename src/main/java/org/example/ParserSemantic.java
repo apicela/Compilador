@@ -450,6 +450,9 @@ public class ParserSemantic {
         for(String s : semanticParserErrors){
             System.out.println(s);
         }
+        if(semanticParserErrors.isEmpty()){
+            System.out.println("CÓDIGO FONTE VÁLIDO EM TERMOS SEMÂNTICOS.");
+        }
     }
 
     private class MathOperation {
