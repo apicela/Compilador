@@ -54,7 +54,7 @@ public class Lexer {
                             errors.add(t.toString());
                             break;
                         case TokenType.IDENTIFIER:
-                            Token identifier = symbolsTable.get(t.getLexeme()).setLine(line);
+                            Token identifier = symbolsTable.get(t.getLexeme());
                             if (identifier == null) symbolsTable.put(t.getLexeme(), t);
                             break;
                     }
