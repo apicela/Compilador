@@ -2,7 +2,7 @@ start
  float a;
  int b, result;
  float a,x,total;
- a = 2.0;
+ a = 2;
  result = a;
  print {Resultado: };
  print (result);

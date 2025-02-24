@@ -16,7 +16,7 @@ public class Main {
         ParserSemantic parserSemantic = null;
         // O nome do arquivo é o primeiro argumento passado
         //  String caminhoArquivo = args[0];
-        String caminhoArquivo = "out\\artifacts\\Compiler_jar\\file.txt";
+        String caminhoArquivo = "out\\artifacts\\Compiler_jar\\teste01.txt";
         try {
             Lexer lexer = new Lexer(caminhoArquivo);
             List<Token> tokens = lexer.processTokens();
@@ -28,6 +28,7 @@ public class Main {
             parserSemantic.start();
         }
         catch (RuntimeException e) {
+            //e.printStackTrace();
             System.out.println(e.getMessage() + " FAVOR CORRIGIR CÓDIGO-FONTE.");
         } catch (Exception e) {
             System.err.println("Erro ao ler o arquivo: " + e.getMessage());

@@ -91,8 +91,7 @@ public class ParserSemantic {
         currentDeclarationType = previous().getLexeme();
         identList();
         if(!match(TokenType.SEMICOLON)){
-            writeAndFlush(";");
-            semanticErrors.add("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
+            throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
         }
         return true;
     }
@@ -141,7 +140,6 @@ public class ParserSemantic {
         if (check(TokenType.IDENTIFIER)) {
             assignStmt();
             if(!match(TokenType.SEMICOLON)){
-                writeAndFlush(";");
                 throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
             }
         } else if (match(TokenType.IF)) {
@@ -151,13 +149,11 @@ public class ParserSemantic {
         } else if (match(TokenType.SCAN)) {
             readStmt();
             if(!match(TokenType.SEMICOLON)){
-                writeAndFlush(";");
                 throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
             }
         } else if (match(TokenType.PRINT)) {
             writeStmt();
             if(!match(TokenType.SEMICOLON)){
-                writeAndFlush(";");
                 throw new RuntimeException("Erro de sintaxe: esperado 'SEMICOLON', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
             }
         } else {
@@ -257,7 +253,6 @@ public class ParserSemantic {
             throw new RuntimeException("Erro de sintaxe: esperado 'identifier', mas encontrado " + peek().getType()+ " na linha " + peek().getLine() + ". ERRO NÃO SERÁ CORRIGIDO E ANÁLISE FINALIZOU");
         }
         if(!match(TokenType.CLOSE_ROUND)){
-            writeAndFlush(")");
             throw new RuntimeException("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
         }
     }
@@ -268,7 +263,6 @@ public class ParserSemantic {
         }
         writable();
         if(!match(TokenType.CLOSE_ROUND)){
-            writeAndFlush(")");
             throw new RuntimeException("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
         }
     }
@@ -397,11 +391,10 @@ public class ParserSemantic {
                 newMathOp.expressionType = currentTypeOfExpression;
                 mathStack.add(newMathOp);
             }
-            if(currentOperation.equals("assign")) verifyAssignment(readedToken);
+            if(currentOperation != null && currentOperation.equals("assign")) verifyAssignment(readedToken);
         } else if (match(TokenType.OPEN_ROUND)) {
             expression();
             if(!match(TokenType.CLOSE_ROUND)){
-                writeAndFlush(")");
                 throw new RuntimeException("Erro de sintaxe: esperado 'CLOSE_ROUND', mas encontrado " + peek().getType()+ " na linha " +  peek().getLine() );
             }
         } else {
@@ -448,20 +441,16 @@ public class ParserSemantic {
         if(mathOperation != null){
             currentFinalToken.setValue(mathOperation.value1);
         } else {
-            if(readedToken.getType() == TokenType.IDENTIFIER) currentFinalToken.setValue(symbolsTable.get(readedToken.getLexeme()).getValue());
+            if(readedToken.getType() == TokenType.IDENTIFIER){
+                if(symbolsTable.get(readedToken.getLexeme()) != null ) currentFinalToken.setValue(symbolsTable.get(readedToken.getLexeme()).getValue());
+            }
             else currentFinalToken.setValue(readedToken.getLexeme());
         }
+        if(currentFinalToken.getValue() != null && currentFinalToken.getValue().equals("null")) return;
         if(currentFinalToken.getType().equals("int")) currentFinalToken.setValue(String.valueOf(Math.ceil(Double.parseDouble(currentFinalToken.getValue()))));
         symbolsTable.put(currentIdentifier, currentFinalToken);
     }
-    void writeAndFlush(String str)  {
-        try{
-//            writer.write(str);
-//            writer.flush();
-        } catch (Exception e){
-            throw new RuntimeException(e.getMessage());
-        }
-    }
+
 
     void printTable(){
         for (Map.Entry<String, FinalToken> entry : symbolsTable.entrySet()) {
@@ -530,8 +519,13 @@ public class ParserSemantic {
                 else semanticParserErrors.add("ERRO Semantico: O operador '==' não é aplicavel em variáveis tipo string. Linha: " + this.opLine);
             }   else if(this.operation.equals("%")){
                 try{
+                    if(this.expressionType.equals("int")) {
+                        this.value1 = String.valueOf((int) Double.parseDouble(this.value1));
+                        this.value2 = String.valueOf((int) Double.parseDouble(this.value2));
+                    }
                     this.result = String.valueOf(Integer.parseInt(this.value1) % Integer.parseInt(this.value2));
                 } catch(NumberFormatException e){
+                    System.out.println(e.getMessage());
                     semanticParserErrors.add("ERRO Semantico: O operador %, requer que ambos operandos sejam inteiros. Linha: " + this.opLine);
                 }
             }
