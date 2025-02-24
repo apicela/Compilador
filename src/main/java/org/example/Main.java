@@ -16,7 +16,7 @@ public class Main {
 
         // O nome do arquivo é o primeiro argumento passado
         //  String caminhoArquivo = args[0];
-        String caminhoArquivo = "C:\\Users\\arthu\\IdeaProjects\\Compilador\\out\\artifacts\\Compiler_jar\\teste02.txt";
+        String caminhoArquivo = "out/artifacts/Compiler_jar/teste05.txt";
         try {
             Lexer lexer = new Lexer(caminhoArquivo);
             List<Token> tokens = lexer.processTokens();
