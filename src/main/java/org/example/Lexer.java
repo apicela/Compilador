@@ -23,7 +23,7 @@ public class Lexer {
     private boolean finished = false;
     private FileReader file;
     private Hashtable<String, Token> symbolsTable = new Hashtable<>();
-    private List<String> errors = new ArrayList<>();
+    public List<String> errors = new ArrayList<>();
     private boolean commentIsClosed = true;
     private int commentLineStart = 0;
     private final String fileName;
@@ -298,6 +298,18 @@ public class Lexer {
         reserve(new Token(TokenType.CLOSE_ROUND, ")", null));
     }
 
+    public void printErrors(){
+        if(errors.isEmpty()) return;
+            System.out.println("=====================");
+            System.out.println("      ERROS: " + errors.size());
+            System.out.println("=====================");
+            for (String error : errors) {
+                System.out.println(error);
+            }
+            System.out.println("=====================");
+            System.out.println("CÓDIGO FONTE INVÁLIDO.");
+            System.exit(0);
+    }
 //    private void printResults() {
 //        // Definindo a largura de cada coluna
 //        final int COL_WIDTH_1 = 10; // Largura para "TYPE"
