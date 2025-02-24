@@ -120,11 +120,13 @@ public class Lexer {
             //Operadores
             case '(':
                 readch();
-                return symbolsTable.get("(").setLine(line);
+                var x = symbolsTable.get("(");
+                return new Token(x.getType(), x.getLexeme(), line);
             case ')':
                 readch();
-                return symbolsTable.get(")").setLine(line);
-            case '{':
+                var xs = symbolsTable.get(")");
+                return new Token(xs.getType(), xs.getLexeme(), line);
+                case '{':
                 return readLiteral();
             case '/':
                 readch();
