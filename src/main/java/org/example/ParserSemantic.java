@@ -397,6 +397,7 @@ public class ParserSemantic {
                 newMathOp.expressionType = currentTypeOfExpression;
                 mathStack.add(newMathOp);
             }
+            if(currentOperation.equals("assign")) verifyAssignment(readedToken);
         } else if (match(TokenType.OPEN_ROUND)) {
             expression();
             if(!match(TokenType.CLOSE_ROUND)){
@@ -428,7 +429,31 @@ public class ParserSemantic {
         mathOp.opLine = mathOperation.opLine;
         mathStack.add(mathOp);
     }
+    private void verifyAssignment(Token readedToken) {
+        FinalToken currentFinalToken = symbolsTable.get(currentIdentifier);
+        if(currentFinalToken == null){
+            semanticParserErrors.add("ERRO Semantico: Está utilizando uma variável inexistente. Linha: " + readedToken.getLine());
+            return;
+        }
+        if (readedToken.getType() == TokenType.CONSTANT_FLOAT && !currentFinalToken.getType().equals("float"))
+            semanticParserErrors.add(String.format("ERRO Semantico: Não é possivel associar %s para variável do tipo %s. Linha: %d",
+                    readedToken.getType(), currentFinalToken.getType(), readedToken.getLine()));
+        else if (readedToken.getType() == TokenType.CONSTANT_INTEGER && !currentFinalToken.getType().equals("int"))
+            semanticParserErrors.add(String.format("ERRO Semantico: Não é possivel associar %s para variável do tipo %s. Linha: %d",
+                    readedToken.getType(), currentFinalToken.getType(), readedToken.getLine()));
+        else if (readedToken.getType() == TokenType.LITERAL && !currentFinalToken.getType().equals("string"))
+            semanticParserErrors.add(String.format("ERRO Semantico: Não é possivel associar %s para variável do tipo %s. Linha: %d",
+                    readedToken.getType(), currentFinalToken.getType(), readedToken.getLine()));
 
+        if(mathOperation != null){
+            currentFinalToken.setValue(mathOperation.value1);
+        } else {
+            if(readedToken.getType() == TokenType.IDENTIFIER) currentFinalToken.setValue(symbolsTable.get(readedToken.getLexeme()).getValue());
+            else currentFinalToken.setValue(readedToken.getLexeme());
+        }
+        if(currentFinalToken.getType().equals("int")) currentFinalToken.setValue(String.valueOf(Math.ceil(Double.parseDouble(currentFinalToken.getValue()))));
+        symbolsTable.put(currentIdentifier, currentFinalToken);
+    }
     void writeAndFlush(String str)  {
         try{
 //            writer.write(str);
